@@ -64,10 +64,13 @@
 
         /* Calendar Styles */
         #calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
-        .cal-day { min-height: 120px; background: rgba(255,255,255,0.03); border-radius: 15px; padding: 12px; border: 0.5px solid rgba(255,255,255,0.05); cursor: pointer; transition: 0.3s; }
+        .cal-day { position: relative; min-height: 120px; background: rgba(255,255,255,0.03); border-radius: 15px; padding: 12px; border: 0.5px solid rgba(255,255,255,0.05); cursor: pointer; transition: 0.3s; background-size: cover; background-position: center; overflow: hidden; }
         .cal-day:hover { background: rgba(255,255,255,0.08); }
-        .cal-day span { font-size: 0.75rem; font-weight: 700; opacity: 0.3; }
-        .cal-event { background: var(--ios-accent); font-size: 0.65rem; padding: 5px 8px; border-radius: 8px; margin-top: 5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .cal-day span { position: relative; z-index: 5; font-size: 0.75rem; font-weight: 700; opacity: 0.6; }
+        .cal-day-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.4); z-index: 1; }
+        .cal-pin { position: absolute; top: 10px; right: 10px; font-size: 1.1rem; color: #ff3b30; z-index: 10; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); animation: pinBounce 1s infinite alternate; }
+        @keyframes pinBounce { from { transform: translateY(0); } to { transform: translateY(-3px); } }
+        .cal-event { position: relative; z-index: 6; background: var(--ios-accent); font-size: 0.65rem; padding: 5px 8px; border-radius: 8px; margin-top: 5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
         /* Stats Styles */
         .stats-poster { margin-top: 40px; display: flex; flex-direction: column; gap: 0; line-height: 0.85; }
@@ -199,7 +202,8 @@
                 <div style="display:flex; align-items:center; gap:20px;">
                     <div id="m-price-container" style="display:flex; align-items:center; font-size: 1.5rem; font-weight: 900; color:white; background:rgba(255,255,255,0.05); padding: 5px 15px; border-radius: 12px;">
                         <span style="color:var(--ios-accent); margin-right:5px;">₩</span>
-                        <input type="number" id="edit-price" class="edit-field" style="font-size: 1.5rem; font-weight: 900; width: 140px; margin:0; padding:0;" readonly>
+                        <input type="text" id="edit-price-display" class="edit-field" style="font-size: 1.5rem; font-weight: 900; width: 140px; margin:0; padding:0;" readonly>
+                        <input type="number" id="edit-price" style="display:none;">
                     </div>
                     <button onclick="toggleEditMode()" id="update-btn" style="background:white; color:black; border:none; padding:12px 24px; border-radius:15px; font-weight:800; cursor:pointer; font-size:0.7rem;">EDIT</button>
                 </div>
@@ -235,6 +239,9 @@
         window.selectedId = null;
         window.replyToId = null;
         window.isEditing = false;
+        window.lastClickedDate = null; // 캘린더 연동을 위해 날짜 저장 변수 추가
+
+        const formatComma = (num) => Number(num).toLocaleString('ko-KR');
 
         onSnapshot(query(archiveCol, orderBy("timestamp", "desc")), (snapshot) => {
             window.records = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -243,6 +250,7 @@
                 const updated = window.records.find(r => r.id === window.selectedId);
                 if(updated) renderComments(updated);
             }
+            if(document.getElementById('cal').classList.contains('active')) renderCalendar(); // 실시간 데이터 반영을 위해 추가
         });
 
         window.renderRecords = () => {
@@ -269,10 +277,10 @@
             document.getElementById('m-bg-glow').style.backgroundImage = `url(${r.img})`;
             document.getElementById('edit-title').value = r.title;
             document.getElementById('edit-review').value = r.review;
+            document.getElementById('edit-price-display').value = formatComma(r.price || 0);
             document.getElementById('edit-price').value = r.price || 0;
             document.getElementById('update-btn').innerText = "EDIT";
             
-            // 상세 정보 표시 로직 유지 (날짜가 있으면 함께 표시 가능)
             let metaText = r.category === 'movie' ? `${r.author} / ${r.year}` : r.author;
             if(r.watchedDate) metaText += ` [${r.watchedDate}]`;
             document.getElementById('m-meta').innerText = metaText;
@@ -345,14 +353,13 @@
 
         window.showSection = (id) => { document.querySelectorAll('.scroller').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); document.querySelectorAll('nav li').forEach(l => l.classList.remove('active')); document.getElementById('nav-' + id).classList.add('active'); document.getElementById('bgText').innerText = id.toUpperCase(); if(id === 'cal') renderCalendar(); };
         
-        // [수정] 감상 일자 필드 제어 포함
         window.setCategory = (cat) => { 
             window.currentCategory = cat; 
             document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active')); 
             document.getElementById('btn-' + cat).classList.add('active'); 
             document.getElementById('label-author').innerText = cat === 'movie' ? 'Director' : 'Author'; 
             document.getElementById('year-field').style.display = cat === 'book' ? 'none' : 'block'; 
-            document.getElementById('date-field').style.display = cat === 'book' ? 'none' : 'block'; // 날짜 필드 제어
+            document.getElementById('date-field').style.display = cat === 'book' ? 'none' : 'block'; 
             document.getElementById('price-input-group').style.display = cat === 'book' ? 'none' : 'block'; 
         };
 
@@ -362,7 +369,6 @@
         window.handleSearch = (e) => { if(e.key === 'Enter') renderRecords(); };
         window.toggleSort = () => { window.priceSort = window.priceSort === 'none' ? 'asc' : (window.priceSort === 'asc' ? 'desc' : 'none'); document.getElementById('sort-label').innerText = window.priceSort.toUpperCase(); renderRecords(); };
         
-        // [수정] 감상 일자 데이터 저장 추가
         window.saveRecord = async () => {
             const title = document.getElementById('in-title').value; if(!title) return;
             await addDoc(archiveCol, { 
@@ -370,7 +376,7 @@
                 title, 
                 author: document.getElementById('in-author').value, 
                 year: document.getElementById('in-year').value, 
-                watchedDate: document.getElementById('in-date').value, // 날짜 저장
+                watchedDate: document.getElementById('in-date').value, 
                 img: document.getElementById('in-img').value, 
                 review: document.getElementById('in-review').value, 
                 price: Number(document.getElementById('in-price').value) || 0, 
@@ -381,31 +387,123 @@
         };
 
         window.toggleEditMode = async () => {
-            const titleField = document.getElementById('edit-title'), reviewField = document.getElementById('edit-review'), priceField = document.getElementById('edit-price'), updateBtn = document.getElementById('update-btn');
-            if (!window.isEditing) { window.isEditing = true; titleField.readOnly = false; reviewField.readOnly = false; priceField.readOnly = false; updateBtn.innerText = "SAVE CHANGES"; }
-            else { await updateDoc(doc(db, "archives", window.selectedId), { title: titleField.value, review: reviewField.value, price: Number(priceField.value) || 0 }); window.isEditing = false; titleField.readOnly = true; reviewField.readOnly = true; priceField.readOnly = true; updateBtn.innerText = "EDIT"; }
+            const titleField = document.getElementById('edit-title'), reviewField = document.getElementById('edit-review'), priceDisplay = document.getElementById('edit-price-display'), priceInput = document.getElementById('edit-price'), updateBtn = document.getElementById('update-btn');
+            if (!window.isEditing) { 
+                window.isEditing = true; 
+                titleField.readOnly = false; 
+                reviewField.readOnly = false; 
+                priceDisplay.readOnly = false;
+                priceDisplay.value = priceInput.value; 
+                updateBtn.innerText = "SAVE CHANGES"; 
+            } else { 
+                const newPrice = Number(priceDisplay.value) || 0;
+                await updateDoc(doc(db, "archives", window.selectedId), { title: titleField.value, review: reviewField.value, price: newPrice }); 
+                window.isEditing = false; 
+                titleField.readOnly = true; 
+                reviewField.readOnly = true; 
+                priceDisplay.readOnly = true;
+                priceDisplay.value = formatComma(newPrice); 
+                priceInput.value = newPrice;
+                updateBtn.innerText = "EDIT"; 
+            }
         };
-        window.closeModal = () => { const m = document.getElementById('modal'); m.classList.remove('active'); setTimeout(() => { m.style.display = 'none'; window.selectedId = null; window.replyToId = null; }, 500); };
+
+        // 모달 닫을 때 로직 수정: 캘린더 모드에서 왔을 경우 하단 입력폼으로 유도
+        window.closeModal = () => { 
+            const m = document.getElementById('modal'); 
+            m.classList.remove('active'); 
+            setTimeout(() => { 
+                m.style.display = 'none'; 
+                // 캘린더에서 클릭한 이력이 있다면 하단 입력창 보여줌
+                if(window.lastClickedDate && document.getElementById('cal').classList.contains('active')) {
+                    const form = document.getElementById('event-form');
+                    form.style.display = 'block';
+                    document.getElementById('ev-start').value = window.lastClickedDate;
+                    document.getElementById('ev-end').value = window.lastClickedDate;
+                    location.href = "#event-form";
+                    document.getElementById('ev-text').focus();
+                    window.lastClickedDate = null; // 초기화
+                }
+                window.selectedId = null; 
+                window.replyToId = null; 
+            }, 500); 
+        };
         
         window.changeMonth = (v) => { window.currentCalDate.setMonth(window.currentCalDate.getMonth()+v); renderCalendar(); };
+        
         window.renderCalendar = () => {
             const cal = document.getElementById('calendar'); cal.innerHTML = '';
             const y = window.currentCalDate.getFullYear(), m = window.currentCalDate.getMonth();
             document.getElementById('cal-month-title').innerText = `${new Intl.DateTimeFormat('en-US',{month:'long'}).format(window.currentCalDate).toUpperCase()}`;
             const first = new Date(y, m, 1).getDay(), days = new Date(y, m+1, 0).getDate();
+            
             for(let i=0; i<first; i++) cal.appendChild(document.createElement('div')).className='cal-day';
+            
             for(let d=1; d<=days; d++) {
-                const day = document.createElement('div'); day.className = 'cal-day'; day.innerHTML = `<span>${d}</span>`;
+                const day = document.createElement('div'); 
+                day.className = 'cal-day'; 
                 const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-                day.onclick = () => { document.getElementById('event-form').style.display='block'; document.getElementById('ev-start').value=ds; document.getElementById('ev-end').value=ds; };
-                window.events.filter(e => ds >= e.start && ds <= e.end).forEach(e => {
-                    const ev = document.createElement('div'); ev.className = 'cal-event'; ev.innerText = e.text;
-                    ev.onclick = (ex) => { ex.stopPropagation(); if(confirm(`Delete?`)) { window.events = window.events.filter(v => v.id !== e.id); localStorage.setItem('events_v5', JSON.stringify(window.events)); renderCalendar(); } };
+                day.innerHTML = `<span>${d}</span>`;
+                
+                // 해당 날짜 기록 찾기
+                const archiveRecord = window.records.find(r => r.watchedDate === ds);
+                if(archiveRecord && archiveRecord.img) {
+                    day.style.backgroundImage = `url(${archiveRecord.img})`;
+                    const overlay = document.createElement('div');
+                    overlay.className = 'cal-day-overlay';
+                    day.appendChild(overlay);
+                }
+
+                const dayEvents = window.events.filter(e => ds >= e.start && ds <= e.end);
+                if(dayEvents.length > 0) {
+                    const pin = document.createElement('div');
+                    pin.className = 'cal-pin';
+                    pin.innerHTML = '<i class="fas fa-thumbtack"></i>';
+                    pin.onclick = (ex) => {
+                        ex.stopPropagation();
+                        document.getElementById('event-form').style.display='block';
+                        document.getElementById('ev-text').value = dayEvents[0].text;
+                        document.getElementById('ev-memo').value = dayEvents[0].memo || '';
+                        document.getElementById('ev-start').value = dayEvents[0].start;
+                        document.getElementById('ev-end').value = dayEvents[0].end;
+                        location.href = "#event-form";
+                    };
+                    day.appendChild(pin);
+                }
+
+                // 칸 클릭 로직: 기록이 있으면 모달 먼저, 없으면 바로 하단 폼
+                day.onclick = () => { 
+                    if(archiveRecord) {
+                        window.lastClickedDate = ds; // 모달 닫은 후를 위해 저장
+                        openModal(archiveRecord);
+                    } else {
+                        document.getElementById('event-form').style.display='block'; 
+                        document.getElementById('ev-text').value = '';
+                        document.getElementById('ev-memo').value = '';
+                        document.getElementById('ev-start').value = ds; 
+                        document.getElementById('ev-end').value = ds; 
+                        location.href = "#event-form";
+                    }
+                };
+
+                dayEvents.forEach(e => {
+                    const ev = document.createElement('div'); 
+                    ev.className = 'cal-event'; 
+                    ev.innerText = e.text;
+                    ev.onclick = (ex) => { 
+                        ex.stopPropagation(); 
+                        if(confirm(`Delete?`)) { 
+                            window.events = window.events.filter(v => v.id !== e.id); 
+                            localStorage.setItem('events_v5', JSON.stringify(window.events)); 
+                            renderCalendar(); 
+                        } 
+                    };
                     day.appendChild(ev);
                 });
                 cal.appendChild(day);
             }
         };
+
         window.saveEvent = () => { const text = document.getElementById('ev-text').value; if(!text) return; window.events.push({id:Date.now(), text, memo:document.getElementById('ev-memo').value, start:document.getElementById('ev-start').value, end:document.getElementById('ev-end').value}); localStorage.setItem('events_v5', JSON.stringify(window.events)); renderCalendar(); document.getElementById('event-form').style.display='none'; };
 
         window.addEventListener('keydown', (e) => {
