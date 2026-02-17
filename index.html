@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Archive / Modern Vision</title>
     <link href="https://fonts.googleapis.com/css2?family=La+Belle+Aurore&family=Syne:wght@400;700;800;900&display=swap" rel="stylesheet">
     <style>
@@ -16,7 +16,7 @@
             --apple-font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
         }
         
-        body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--apple-font); overflow-x: hidden; letter-spacing: -0.01em; }
+        body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--apple-font); overflow-x: hidden; letter-spacing: -0.01em; padding-bottom: env(safe-area-inset-bottom); }
         .bg-text { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 25vw; font-weight: 900; color: rgba(255, 255, 255, 0.02); white-space: nowrap; z-index: -1; pointer-events: none; text-transform: uppercase; font-family: 'Syne'; }
 
         nav { position: fixed; top: 0; width: 100%; padding: 30px 50px; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; z-index: 1000; background: rgba(0,0,0,0.8); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
@@ -81,11 +81,15 @@
 
         @media (max-width: 600px) {
             nav { padding: 20px; }
+            nav ul { gap: 15px; }
+            .search-area { position: relative; left: 0; transform: none; order: 3; }
             .comment-item.reply { margin-left: 15px; padding-left: 10px; }
-            .modal-content { flex-direction: column; height: 90vh; padding: 25px; gap: 20px; }
-            .modal-left { width: 100%; height: 250px; }
+            .modal-content { flex-direction: column; height: 90vh; padding: 25px; gap: 20px; overflow-y: auto; }
+            .modal-left { width: 100%; height: 250px; flex-shrink: 0; }
+            .modal-right { overflow-y: visible; padding-right: 0; }
             .large-text { font-size: 15vw; }
             .accent-pink, .accent-blue { font-size: 18vw; }
+            .archive-grid { grid-template-columns: repeat(2, 1fr); gap: 15px; }
         }
 
         .comment-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
@@ -239,7 +243,7 @@
         window.selectedId = null;
         window.replyToId = null;
         window.isEditing = false;
-        window.lastClickedDate = null; // 캘린더 연동을 위해 날짜 저장 변수 추가
+        window.lastClickedDate = null;
 
         const formatComma = (num) => Number(num).toLocaleString('ko-KR');
 
@@ -250,11 +254,12 @@
                 const updated = window.records.find(r => r.id === window.selectedId);
                 if(updated) renderComments(updated);
             }
-            if(document.getElementById('cal').classList.contains('active')) renderCalendar(); // 실시간 데이터 반영을 위해 추가
+            if(document.getElementById('cal').classList.contains('active')) renderCalendar();
         });
 
         window.renderRecords = () => {
             const dg = document.getElementById('dvd-grid'), bg = document.getElementById('book-grid');
+            if(!dg || !bg) return;
             dg.innerHTML = ''; bg.innerHTML = '';
             const q = document.getElementById('search-query').value.toLowerCase();
             let filtered = window.records.filter(r => r.title.toLowerCase().includes(q) || r.author.toLowerCase().includes(q));
@@ -317,7 +322,7 @@
         window.setReply = (timeId) => {
             window.replyToId = timeId;
             const input = document.getElementById('cmt-text'); 
-            input.placeholder = "Replying..."; input.focus();
+            input.placeholder = "Replying to comment..."; input.focus();
             input.style.border = "1px solid var(--ios-accent)";
         };
 
@@ -364,7 +369,7 @@
         };
 
         window.toggleComments = () => { const div = document.getElementById('comment-section'); div.style.display = div.style.display === 'block' ? 'none' : 'block'; };
-        window.deleteRecord = async () => { if(confirm("Delete?")) { await deleteDoc(doc(db, "archives", window.selectedId)); closeModal(); } };
+        window.deleteRecord = async () => { if(confirm("Delete this card?")) { await deleteDoc(doc(db, "archives", window.selectedId)); closeModal(); } };
         window.toggleSearchBox = () => { const w = document.getElementById('search-input-wrapper'); w.style.display = w.style.display === 'block' ? 'none' : 'block'; if(w.style.display === 'block') document.getElementById('search-query').focus(); };
         window.handleSearch = (e) => { if(e.key === 'Enter') renderRecords(); };
         window.toggleSort = () => { window.priceSort = window.priceSort === 'none' ? 'asc' : (window.priceSort === 'asc' ? 'desc' : 'none'); document.getElementById('sort-label').innerText = window.priceSort.toUpperCase(); renderRecords(); };
@@ -384,6 +389,7 @@
                 timestamp: Date.now() 
             });
             document.querySelectorAll('#main input, #main textarea').forEach(i => i.value='');
+            alert("Archive Saved!");
         };
 
         window.toggleEditMode = async () => {
@@ -408,13 +414,11 @@
             }
         };
 
-        // 모달 닫을 때 로직 수정: 캘린더 모드에서 왔을 경우 하단 입력폼으로 유도
         window.closeModal = () => { 
             const m = document.getElementById('modal'); 
             m.classList.remove('active'); 
             setTimeout(() => { 
                 m.style.display = 'none'; 
-                // 캘린더에서 클릭한 이력이 있다면 하단 입력창 보여줌
                 if(window.lastClickedDate && document.getElementById('cal').classList.contains('active')) {
                     const form = document.getElementById('event-form');
                     form.style.display = 'block';
@@ -422,7 +426,7 @@
                     document.getElementById('ev-end').value = window.lastClickedDate;
                     location.href = "#event-form";
                     document.getElementById('ev-text').focus();
-                    window.lastClickedDate = null; // 초기화
+                    window.lastClickedDate = null;
                 }
                 window.selectedId = null; 
                 window.replyToId = null; 
@@ -445,7 +449,6 @@
                 const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
                 day.innerHTML = `<span>${d}</span>`;
                 
-                // 해당 날짜 기록 찾기
                 const archiveRecord = window.records.find(r => r.watchedDate === ds);
                 if(archiveRecord && archiveRecord.img) {
                     day.style.backgroundImage = `url(${archiveRecord.img})`;
@@ -471,10 +474,9 @@
                     day.appendChild(pin);
                 }
 
-                // 칸 클릭 로직: 기록이 있으면 모달 먼저, 없으면 바로 하단 폼
                 day.onclick = () => { 
                     if(archiveRecord) {
-                        window.lastClickedDate = ds; // 모달 닫은 후를 위해 저장
+                        window.lastClickedDate = ds;
                         openModal(archiveRecord);
                     } else {
                         document.getElementById('event-form').style.display='block'; 
@@ -492,7 +494,7 @@
                     ev.innerText = e.text;
                     ev.onclick = (ex) => { 
                         ex.stopPropagation(); 
-                        if(confirm(`Delete?`)) { 
+                        if(confirm(`Delete this event memory?`)) { 
                             window.events = window.events.filter(v => v.id !== e.id); 
                             localStorage.setItem('events_v5', JSON.stringify(window.events)); 
                             renderCalendar(); 
