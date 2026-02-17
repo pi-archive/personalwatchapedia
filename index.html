@@ -43,6 +43,7 @@
         .imessage-container { max-width: 480px; margin: 0 auto; background: var(--ios-blur); border-radius: 35px; padding: 40px; border: 0.5px solid rgba(255,255,255,0.15); }
         .ios-label { font-size: 0.7rem; color: #8e8e93; margin-bottom: 8px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em; }
         input, textarea { width: 100%; background: rgba(255,255,255,0.08); border: none; border-radius: 16px; padding: 16px; color: white; outline: none; margin-bottom: 18px; box-sizing: border-box; font-family: var(--apple-font); }
+        input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
         .save-btn { width: 100%; padding: 18px; border-radius: 18px; background: var(--ios-accent); color: #fff; font-weight: 700; border: none; cursor: pointer; }
 
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); z-index: 2000; display: none; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.5s ease; overflow: hidden; }
@@ -68,7 +69,7 @@
         .cal-day span { font-size: 0.75rem; font-weight: 700; opacity: 0.3; }
         .cal-event { background: var(--ios-accent); font-size: 0.65rem; padding: 5px 8px; border-radius: 8px; margin-top: 5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        /* Stats Styles (레이아웃 수정됨) */
+        /* Stats Styles */
         .stats-poster { margin-top: 40px; display: flex; flex-direction: column; gap: 0; line-height: 0.85; }
         .large-text { font-family: 'Syne'; font-size: 11vw; font-weight: 900; letter-spacing: -0.05em; display: block; text-transform: uppercase; }
         .accent-pink { color: var(--ios-pink); font-family: 'Syne'; font-size: 13vw; font-weight: 900; display: block; margin: -1vw 0; }
@@ -76,6 +77,7 @@
         .stat-row { display: flex; align-items: baseline; }
 
         @media (max-width: 600px) {
+            nav { padding: 20px; }
             .comment-item.reply { margin-left: 15px; padding-left: 10px; }
             .modal-content { flex-direction: column; height: 90vh; padding: 25px; gap: 20px; }
             .modal-left { width: 100%; height: 250px; }
@@ -129,6 +131,9 @@
                 <div style="flex: 2;"><div class="ios-label" id="label-author">Director</div><input type="text" id="in-author"></div>
                 <div style="flex: 1;" id="year-field"><div class="ios-label">Year</div><input type="text" id="in-year" placeholder="2026"></div>
             </div>
+            
+            <div id="date-field"><div class="ios-label">Watched Date</div><input type="date" id="in-date"></div>
+
             <div class="ios-label">Image URL</div><input type="text" id="in-img">
             <div class="ios-label">Review</div><textarea id="in-review" rows="3"></textarea>
             <div id="price-input-group"><div class="ios-label">Value</div><input type="number" id="in-price"></div>
@@ -266,7 +271,12 @@
             document.getElementById('edit-review').value = r.review;
             document.getElementById('edit-price').value = r.price || 0;
             document.getElementById('update-btn').innerText = "EDIT";
-            document.getElementById('m-meta').innerText = r.category === 'movie' ? `${r.author} / ${r.year}` : r.author;
+            
+            // 상세 정보 표시 로직 유지 (날짜가 있으면 함께 표시 가능)
+            let metaText = r.category === 'movie' ? `${r.author} / ${r.year}` : r.author;
+            if(r.watchedDate) metaText += ` [${r.watchedDate}]`;
+            document.getElementById('m-meta').innerText = metaText;
+            
             document.getElementById('m-price-container').style.visibility = r.category === 'movie' ? 'visible' : 'hidden';
             document.getElementById('comment-section').style.display = 'none';
             renderComments(r);
@@ -334,17 +344,42 @@
         };
 
         window.showSection = (id) => { document.querySelectorAll('.scroller').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); document.querySelectorAll('nav li').forEach(l => l.classList.remove('active')); document.getElementById('nav-' + id).classList.add('active'); document.getElementById('bgText').innerText = id.toUpperCase(); if(id === 'cal') renderCalendar(); };
-        window.setCategory = (cat) => { window.currentCategory = cat; document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active')); document.getElementById('btn-' + cat).classList.add('active'); document.getElementById('label-author').innerText = cat === 'movie' ? 'Director' : 'Author'; document.getElementById('year-field').style.display = cat === 'book' ? 'none' : 'block'; document.getElementById('price-input-group').style.display = cat === 'book' ? 'none' : 'block'; };
+        
+        // [수정] 감상 일자 필드 제어 포함
+        window.setCategory = (cat) => { 
+            window.currentCategory = cat; 
+            document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active')); 
+            document.getElementById('btn-' + cat).classList.add('active'); 
+            document.getElementById('label-author').innerText = cat === 'movie' ? 'Director' : 'Author'; 
+            document.getElementById('year-field').style.display = cat === 'book' ? 'none' : 'block'; 
+            document.getElementById('date-field').style.display = cat === 'book' ? 'none' : 'block'; // 날짜 필드 제어
+            document.getElementById('price-input-group').style.display = cat === 'book' ? 'none' : 'block'; 
+        };
+
         window.toggleComments = () => { const div = document.getElementById('comment-section'); div.style.display = div.style.display === 'block' ? 'none' : 'block'; };
         window.deleteRecord = async () => { if(confirm("Delete?")) { await deleteDoc(doc(db, "archives", window.selectedId)); closeModal(); } };
         window.toggleSearchBox = () => { const w = document.getElementById('search-input-wrapper'); w.style.display = w.style.display === 'block' ? 'none' : 'block'; if(w.style.display === 'block') document.getElementById('search-query').focus(); };
         window.handleSearch = (e) => { if(e.key === 'Enter') renderRecords(); };
         window.toggleSort = () => { window.priceSort = window.priceSort === 'none' ? 'asc' : (window.priceSort === 'asc' ? 'desc' : 'none'); document.getElementById('sort-label').innerText = window.priceSort.toUpperCase(); renderRecords(); };
+        
+        // [수정] 감상 일자 데이터 저장 추가
         window.saveRecord = async () => {
             const title = document.getElementById('in-title').value; if(!title) return;
-            await addDoc(archiveCol, { category: window.currentCategory, title, author: document.getElementById('in-author').value, year: document.getElementById('in-year').value, img: document.getElementById('in-img').value, review: document.getElementById('in-review').value, price: Number(document.getElementById('in-price').value) || 0, comments: [], timestamp: Date.now() });
+            await addDoc(archiveCol, { 
+                category: window.currentCategory, 
+                title, 
+                author: document.getElementById('in-author').value, 
+                year: document.getElementById('in-year').value, 
+                watchedDate: document.getElementById('in-date').value, // 날짜 저장
+                img: document.getElementById('in-img').value, 
+                review: document.getElementById('in-review').value, 
+                price: Number(document.getElementById('in-price').value) || 0, 
+                comments: [], 
+                timestamp: Date.now() 
+            });
             document.querySelectorAll('#main input, #main textarea').forEach(i => i.value='');
         };
+
         window.toggleEditMode = async () => {
             const titleField = document.getElementById('edit-title'), reviewField = document.getElementById('edit-review'), priceField = document.getElementById('edit-price'), updateBtn = document.getElementById('update-btn');
             if (!window.isEditing) { window.isEditing = true; titleField.readOnly = false; reviewField.readOnly = false; priceField.readOnly = false; updateBtn.innerText = "SAVE CHANGES"; }
@@ -373,7 +408,6 @@
         };
         window.saveEvent = () => { const text = document.getElementById('ev-text').value; if(!text) return; window.events.push({id:Date.now(), text, memo:document.getElementById('ev-memo').value, start:document.getElementById('ev-start').value, end:document.getElementById('ev-end').value}); localStorage.setItem('events_v5', JSON.stringify(window.events)); renderCalendar(); document.getElementById('event-form').style.display='none'; };
 
-        // ESC 키로 모달 닫기 추가
         window.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 const modal = document.getElementById('modal');
