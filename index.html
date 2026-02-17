@@ -80,9 +80,13 @@
         .stat-row { display: flex; align-items: baseline; }
 
         @media (max-width: 600px) {
-            nav { padding: 20px; }
-            nav ul { gap: 15px; }
-            .search-area { position: relative; left: 0; transform: none; order: 3; }
+            nav { padding: 20px; flex-wrap: nowrap; overflow: hidden; }
+            /* 메뉴바 가로 스크롤 허용: 가려진 캘린더/카운트 접근용 */
+            nav ul { gap: 20px; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 5px; }
+            nav ul::-webkit-scrollbar { display: none; }
+            nav li { white-space: nowrap; flex-shrink: 0; }
+            
+            .search-area { display: none; } /* 모바일에서 메뉴 공간 확보를 위해 검색창 숨김 */
             .comment-item.reply { margin-left: 15px; padding-left: 10px; }
             .modal-content { flex-direction: column; height: 90vh; padding: 25px; gap: 20px; overflow-y: auto; }
             .modal-left { width: 100%; height: 250px; flex-shrink: 0; }
@@ -138,9 +142,7 @@
                 <div style="flex: 2;"><div class="ios-label" id="label-author">Director</div><input type="text" id="in-author"></div>
                 <div style="flex: 1;" id="year-field"><div class="ios-label">Year</div><input type="text" id="in-year" placeholder="2026"></div>
             </div>
-            
             <div id="date-field"><div class="ios-label">Watched Date</div><input type="date" id="in-date"></div>
-
             <div class="ios-label">Image URL</div><input type="text" id="in-img">
             <div class="ios-label">Review</div><textarea id="in-review" rows="3"></textarea>
             <div id="price-input-group"><div class="ios-label">Value</div><input type="number" id="in-price"></div>
@@ -148,79 +150,22 @@
         </div>
     </section>
 
-    <section id="dvd" class="scroller">
-        <div class="section-header">
-            <button onclick="toggleSort()" style="background:rgba(255,255,255,0.05); color:#8e8e93; border:0.5px solid #333; padding:8px 15px; border-radius:12px; font-size:0.65rem; font-weight:700; cursor:pointer;">SORT: <span id="sort-label">DEFAULT</span></button>
-        </div>
-        <div class="archive-grid" id="dvd-grid"></div>
-    </section>
-    
-    <section id="book" class="scroller">
-        <div class="section-header"></div>
-        <div class="archive-grid" id="book-grid"></div>
-    </section>
-
-    <section id="cal" class="scroller">
-        <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:30px;">
-            <h1 id="cal-month-title" style="font-family:'Syne'; font-size:4.5rem; margin:0; font-weight:800; line-height:0.8;">MONTH</h1>
-            <div style="display:flex; gap:10px;">
-                <button onclick="changeMonth(-1)" style="background:none; color:white; border:0.5px solid #444; padding:10px 20px; border-radius:12px; font-size:0.7rem; cursor:pointer;">PREV</button>
-                <button onclick="changeMonth(1)" style="background:none; color:white; border:0.5px solid #444; padding:10px 20px; border-radius:12px; font-size:0.7rem; cursor:pointer;">NEXT</button>
-            </div>
-        </div>
-        <div id="calendar"></div>
-        <div id="event-form" style="display:none; margin-top:40px; background:rgba(255,255,255,0.03); padding:30px; border-radius:25px; border:0.5px solid #333;">
-            <div class="ios-label">Event Memory</div><input type="text" id="ev-text">
-            <div class="ios-label">Memo Detail</div><textarea id="ev-memo" rows="2"></textarea>
-            <div style="display:flex; gap:10px; margin-bottom:20px;"><input type="date" id="ev-start"><input type="date" id="ev-end"></div>
-            <button class="save-btn" onclick="saveEvent()">Save to Memory</button>
-        </div>
-    </section>
-
-    <section id="stats" class="scroller">
-        <div style="font-size: 0.8rem; color: #444; font-weight: 700; letter-spacing: 0.3em; margin-bottom: 20px;">ARCHIVE STATS_</div>
-        <div class="stats-poster">
-            <span class="large-text">TOTAL</span> 
-            <span class="accent-pink" id="stat-movie">0</span>
-            <span class="large-text">MOVIES</span>
-            <span class="large-text">COLLECTED</span>
-            <div class="stat-row">
-                <span class="accent-blue" id="stat-book">0</span> 
-                <span class="large-text">BOOKS.</span>
-            </div>
-        </div>
-    </section>
+    <section id="dvd" class="scroller"><div class="section-header"><button onclick="toggleSort()" style="background:rgba(255,255,255,0.05); color:#8e8e93; border:0.5px solid #333; padding:8px 15px; border-radius:12px; font-size:0.65rem; font-weight:700; cursor:pointer;">SORT: <span id="sort-label">DEFAULT</span></button></div><div class="archive-grid" id="dvd-grid"></div></section>
+    <section id="book" class="scroller"><div class="section-header"></div><div class="archive-grid" id="book-grid"></div></section>
+    <section id="cal" class="scroller"><div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:30px;"><h1 id="cal-month-title" style="font-family:'Syne'; font-size:4.5rem; margin:0; font-weight:800; line-height:0.8;">MONTH</h1><div style="display:flex; gap:10px;"><button onclick="changeMonth(-1)" style="background:none; color:white; border:0.5px solid #444; padding:10px 20px; border-radius:12px; font-size:0.7rem; cursor:pointer;">PREV</button><button onclick="changeMonth(1)" style="background:none; color:white; border:0.5px solid #444; padding:10px 20px; border-radius:12px; font-size:0.7rem; cursor:pointer;">NEXT</button></div></div><div id="calendar"></div><div id="event-form" style="display:none; margin-top:40px; background:rgba(255,255,255,0.03); padding:30px; border-radius:25px; border:0.5px solid #333;"><div class="ios-label">Event Memory</div><input type="text" id="ev-text"><div class="ios-label">Memo Detail</div><textarea id="ev-memo" rows="2"></textarea><div style="display:flex; gap:10px; margin-bottom:20px;"><input type="date" id="ev-start"><input type="date" id="ev-end"></div><button class="save-btn" onclick="saveEvent()">Save to Memory</button></div></section>
+    <section id="stats" class="scroller"><div style="font-size: 0.8rem; color: #444; font-weight: 700; letter-spacing: 0.3em; margin-bottom: 20px;">ARCHIVE STATS_</div><div class="stats-poster"><span class="large-text">TOTAL</span><span class="accent-pink" id="stat-movie">0</span><span class="large-text">MOVIES</span><span class="large-text">COLLECTED</span><div class="stat-row"><span class="accent-blue" id="stat-book">0</span><span class="large-text">BOOKS.</span></div></div></section>
 
     <div class="modal" id="modal" onclick="closeModal()">
         <div class="modal-bg-glow" id="m-bg-glow"></div>
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-left"><img src="" id="m-img"></div>
             <div class="modal-right">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div id="m-meta" style="color:var(--ios-accent); font-size: 0.75rem; font-weight: 800; letter-spacing: 0.1em;">META INFO</div>
-                    <button onclick="deleteRecord()" style="background:none; color:#ff453a; border:none; cursor:pointer; font-size:0.65rem; font-weight:800; opacity:0.6;">DELETE CARD</button>
-                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center;"><div id="m-meta" style="color:var(--ios-accent); font-size: 0.75rem; font-weight: 800; letter-spacing: 0.1em;">META INFO</div><button onclick="deleteRecord()" style="background:none; color:#ff453a; border:none; cursor:pointer; font-size:0.65rem; font-weight:800; opacity:0.6;">DELETE CARD</button></div>
                 <input type="text" id="edit-title" class="edit-field" style="font-family:'Syne'; font-size: 3rem; font-weight: 800; margin: 10px 0; letter-spacing: -0.02em;" readonly>
                 <textarea id="edit-review" class="edit-field" style="font-size: 1.1rem; color: #d1d1d6; line-height: 1.7; min-height: 120px; resize: none; margin-bottom: 20px;" readonly></textarea>
-                
-                <div style="display:flex; align-items:center; gap:20px;">
-                    <div id="m-price-container" style="display:flex; align-items:center; font-size: 1.5rem; font-weight: 900; color:white; background:rgba(255,255,255,0.05); padding: 5px 15px; border-radius: 12px;">
-                        <span style="color:var(--ios-accent); margin-right:5px;">₩</span>
-                        <input type="text" id="edit-price-display" class="edit-field" style="font-size: 1.5rem; font-weight: 900; width: 140px; margin:0; padding:0;" readonly>
-                        <input type="number" id="edit-price" style="display:none;">
-                    </div>
-                    <button onclick="toggleEditMode()" id="update-btn" style="background:white; color:black; border:none; padding:12px 24px; border-radius:15px; font-weight:800; cursor:pointer; font-size:0.7rem;">EDIT</button>
-                </div>
-
+                <div style="display:flex; align-items:center; gap:20px;"><div id="m-price-container" style="display:flex; align-items:center; font-size: 1.5rem; font-weight: 900; color:white; background:rgba(255,255,255,0.05); padding: 5px 15px; border-radius: 12px;"><span style="color:var(--ios-accent); margin-right:5px;">₩</span><input type="text" id="edit-price-display" class="edit-field" style="font-size: 1.5rem; font-weight: 900; width: 140px; margin:0; padding:0;" readonly><input type="number" id="edit-price" style="display:none;"></div><button onclick="toggleEditMode()" id="update-btn" style="background:white; color:black; border:none; padding:12px 24px; border-radius:15px; font-weight:800; cursor:pointer; font-size:0.7rem;">EDIT</button></div>
                 <button class="more-btn" onclick="toggleComments()">View Discussion & Memos</button>
-                <div id="comment-section">
-                    <div id="comment-list" class="chat-wrap"></div>
-                    <div class="chat-input-bar">
-                        <input type="text" id="cmt-author" placeholder="Name">
-                        <input type="text" id="cmt-text" placeholder="Write a comment...">
-                        <button class="send-btn" onclick="addComment()"><i class="fas fa-arrow-up"></i></button>
-                    </div>
-                </div>
+                <div id="comment-section"><div id="comment-list" class="chat-wrap"></div><div class="chat-input-bar"><input type="text" id="cmt-author" placeholder="Name"><input type="text" id="cmt-text" placeholder="Write a comment..."><button class="send-btn" onclick="addComment()"><i class="fas fa-arrow-up"></i></button></div></div>
             </div>
         </div>
     </div>
@@ -235,39 +180,24 @@
         const db = getFirestore(app);
         const archiveCol = collection(db, "archives");
 
-        window.currentCategory = 'movie';
-        window.records = [];
-        window.events = JSON.parse(localStorage.getItem('events_v5')) || [];
-        window.currentCalDate = new Date();
-        window.priceSort = 'none';
-        window.selectedId = null;
-        window.replyToId = null;
-        window.isEditing = false;
-        window.lastClickedDate = null;
-
+        window.currentCategory = 'movie'; window.records = []; window.events = JSON.parse(localStorage.getItem('events_v5')) || []; window.currentCalDate = new Date(); window.priceSort = 'none'; window.selectedId = null; window.replyToId = null; window.isEditing = false; window.lastClickedDate = null;
         const formatComma = (num) => Number(num).toLocaleString('ko-KR');
 
-        onSnapshot(query(archiveCol, orderBy("timestamp", "desc")), (snapshot) => {
-            window.records = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        onSnapshot(query(archiveCol, orderBy("timestamp", "desc")), (snap) => {
+            window.records = snap.docs.map(d => ({ id: d.id, ...d.data() }));
             renderRecords();
-            if(window.selectedId) {
-                const updated = window.records.find(r => r.id === window.selectedId);
-                if(updated) renderComments(updated);
-            }
+            if(window.selectedId) { const updated = window.records.find(r => r.id === window.selectedId); if(updated) renderComments(updated); }
             if(document.getElementById('cal').classList.contains('active')) renderCalendar();
         });
 
         window.renderRecords = () => {
             const dg = document.getElementById('dvd-grid'), bg = document.getElementById('book-grid');
-            if(!dg || !bg) return;
-            dg.innerHTML = ''; bg.innerHTML = '';
+            if(!dg || !bg) return; dg.innerHTML = ''; bg.innerHTML = '';
             const q = document.getElementById('search-query').value.toLowerCase();
             let filtered = window.records.filter(r => r.title.toLowerCase().includes(q) || r.author.toLowerCase().includes(q));
             if(window.priceSort !== 'none') filtered.sort((a,b) => window.priceSort === 'asc' ? (a.price-b.price) : (b.price-a.price));
-            
             filtered.forEach(r => {
-                const item = document.createElement('div'); item.className = 'archive-item';
-                item.onclick = () => openModal(r);
+                const item = document.createElement('div'); item.className = 'archive-item'; item.onclick = () => openModal(r);
                 item.innerHTML = `<div class="img-wrap"><img src="${r.img}"></div><div style="text-align:center;font-weight:600;font-size:0.8rem;">${r.title}</div>`;
                 if(r.category === 'movie') dg.appendChild(item); else bg.appendChild(item);
             });
@@ -276,246 +206,78 @@
         };
 
         window.openModal = (r) => { 
-            window.selectedId = r.id;
-            window.isEditing = false;
-            document.getElementById('m-img').src = r.img;
-            document.getElementById('m-bg-glow').style.backgroundImage = `url(${r.img})`;
-            document.getElementById('edit-title').value = r.title;
-            document.getElementById('edit-review').value = r.review;
-            document.getElementById('edit-price-display').value = formatComma(r.price || 0);
-            document.getElementById('edit-price').value = r.price || 0;
+            window.selectedId = r.id; window.isEditing = false;
+            document.getElementById('m-img').src = r.img; document.getElementById('m-bg-glow').style.backgroundImage = `url(${r.img})`;
+            document.getElementById('edit-title').value = r.title; document.getElementById('edit-review').value = r.review;
+            document.getElementById('edit-price-display').value = formatComma(r.price || 0); document.getElementById('edit-price').value = r.price || 0;
             document.getElementById('update-btn').innerText = "EDIT";
-            
             let metaText = r.category === 'movie' ? `${r.author} / ${r.year}` : r.author;
-            if(r.watchedDate) metaText += ` [${r.watchedDate}]`;
-            document.getElementById('m-meta').innerText = metaText;
-            
+            if(r.watchedDate) metaText += ` [${r.watchedDate}]`; document.getElementById('m-meta').innerText = metaText;
             document.getElementById('m-price-container').style.visibility = r.category === 'movie' ? 'visible' : 'hidden';
             document.getElementById('comment-section').style.display = 'none';
-            renderComments(r);
-            const m = document.getElementById('modal'); m.style.display = 'flex';
-            setTimeout(() => m.classList.add('active'), 10);
+            renderComments(r); const m = document.getElementById('modal'); m.style.display = 'flex'; setTimeout(() => m.classList.add('active'), 10);
         };
 
         window.renderComments = (r) => {
             const list = document.getElementById('comment-list'); list.innerHTML = '';
-            const comments = r.comments || [];
             const renderLoop = (parentId = null) => {
-                comments.filter(c => (c.parentId || null) === parentId).forEach(c => {
-                    const item = document.createElement('div');
-                    item.className = `comment-item ${parentId ? 'reply' : ''}`;
-                    item.innerHTML = `
-                        <div class="comment-header"><span class="comment-author">${c.author}</span></div>
-                        <div class="comment-text">${c.text}</div>
-                        <div class="comment-actions">
-                            <span onclick="setReply('${c.time}')">Reply</span>
-                            <span onclick="editComment('${c.time}')">Edit</span>
-                            <span onclick="deleteComment('${c.time}')">Delete</span>
-                        </div>`;
-                    list.appendChild(item);
-                    renderLoop(c.time);
+                (r.comments || []).filter(c => (c.parentId || null) === parentId).forEach(c => {
+                    const item = document.createElement('div'); item.className = `comment-item ${parentId ? 'reply' : ''}`;
+                    item.innerHTML = `<div class="comment-header"><span class="comment-author">${c.author}</span></div><div class="comment-text">${c.text}</div><div class="comment-actions"><span onclick="setReply('${c.time}')">Reply</span><span onclick="editComment('${c.time}')">Edit</span><span onclick="deleteComment('${c.time}')">Delete</span></div>`;
+                    list.appendChild(item); renderLoop(c.time);
                 });
-            };
-            renderLoop(null);
+            }; renderLoop(null);
         };
 
-        window.setReply = (timeId) => {
-            window.replyToId = timeId;
-            const input = document.getElementById('cmt-text'); 
-            input.placeholder = "Replying to comment..."; input.focus();
-            input.style.border = "1px solid var(--ios-accent)";
-        };
-
+        window.setReply = (timeId) => { window.replyToId = timeId; const input = document.getElementById('cmt-text'); input.placeholder = "Replying..."; input.focus(); input.style.border = "1px solid var(--ios-accent)"; };
         window.addComment = async () => {
-            const author = document.getElementById('cmt-author').value || "Guest", text = document.getElementById('cmt-text').value;
-            if(!text) return;
-            const r = window.records.find(rec => rec.id === window.selectedId);
-            const comments = r.comments || [];
-            comments.push({ author, text, time: String(Date.now()), parentId: window.replyToId });
+            const author = document.getElementById('cmt-author').value || "Guest", text = document.getElementById('cmt-text').value; if(!text) return;
+            const r = window.records.find(rec => rec.id === window.selectedId); const comments = [...(r.comments || []), { author, text, time: String(Date.now()), parentId: window.replyToId }];
             await updateDoc(doc(db, "archives", window.selectedId), { comments });
-            document.getElementById('cmt-text').value = ''; 
-            document.getElementById('cmt-text').placeholder = "Write a comment...";
-            document.getElementById('cmt-text').style.border = "none";
-            window.replyToId = null;
+            document.getElementById('cmt-text').value = ''; document.getElementById('cmt-text').placeholder = "Write a comment..."; document.getElementById('cmt-text').style.border = "none"; window.replyToId = null;
         };
 
-        window.deleteComment = async (timeId) => {
-            if(!confirm("댓글을 삭제하시겠습니까?")) return;
-            const r = window.records.find(rec => rec.id === window.selectedId);
-            const comments = r.comments.filter(c => c.time !== timeId && c.parentId !== timeId);
-            await updateDoc(doc(db, "archives", window.selectedId), { comments });
-        };
-
-        window.editComment = async (timeId) => {
-            const r = window.records.find(rec => rec.id === window.selectedId);
-            const c = r.comments.find(com => com.time === timeId);
-            const newText = prompt("댓글 수정:", c.text);
-            if(newText) {
-                const comments = r.comments.map(com => com.time === timeId ? {...com, text: newText} : com);
-                await updateDoc(doc(db, "archives", window.selectedId), { comments });
-            }
-        };
+        window.deleteComment = async (timeId) => { if(confirm("삭제하시겠습니까?")) { const r = window.records.find(rec => rec.id === window.selectedId); await updateDoc(doc(db, "archives", window.selectedId), { comments: r.comments.filter(c => c.time !== timeId && c.parentId !== timeId) }); } };
+        window.editComment = async (timeId) => { const r = window.records.find(rec => rec.id === window.selectedId); const c = r.comments.find(com => com.time === timeId); const newText = prompt("수정:", c.text); if(newText) await updateDoc(doc(db, "archives", window.selectedId), { comments: r.comments.map(com => com.time === timeId ? {...com, text: newText} : com) }); };
 
         window.showSection = (id) => { document.querySelectorAll('.scroller').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); document.querySelectorAll('nav li').forEach(l => l.classList.remove('active')); document.getElementById('nav-' + id).classList.add('active'); document.getElementById('bgText').innerText = id.toUpperCase(); if(id === 'cal') renderCalendar(); };
-        
-        window.setCategory = (cat) => { 
-            window.currentCategory = cat; 
-            document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active')); 
-            document.getElementById('btn-' + cat).classList.add('active'); 
-            document.getElementById('label-author').innerText = cat === 'movie' ? 'Director' : 'Author'; 
-            document.getElementById('year-field').style.display = cat === 'book' ? 'none' : 'block'; 
-            document.getElementById('date-field').style.display = cat === 'book' ? 'none' : 'block'; 
-            document.getElementById('price-input-group').style.display = cat === 'book' ? 'none' : 'block'; 
-        };
-
+        window.setCategory = (cat) => { window.currentCategory = cat; document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active')); document.getElementById('btn-' + cat).classList.add('active'); document.getElementById('label-author').innerText = cat === 'movie' ? 'Director' : 'Author'; document.getElementById('year-field').style.display = cat === 'book' ? 'none' : 'block'; document.getElementById('date-field').style.display = cat === 'book' ? 'none' : 'block'; document.getElementById('price-input-group').style.display = cat === 'book' ? 'none' : 'block'; };
         window.toggleComments = () => { const div = document.getElementById('comment-section'); div.style.display = div.style.display === 'block' ? 'none' : 'block'; };
-        window.deleteRecord = async () => { if(confirm("Delete this card?")) { await deleteDoc(doc(db, "archives", window.selectedId)); closeModal(); } };
+        window.deleteRecord = async () => { if(confirm("Delete?")) { await deleteDoc(doc(db, "archives", window.selectedId)); closeModal(); } };
         window.toggleSearchBox = () => { const w = document.getElementById('search-input-wrapper'); w.style.display = w.style.display === 'block' ? 'none' : 'block'; if(w.style.display === 'block') document.getElementById('search-query').focus(); };
         window.handleSearch = (e) => { if(e.key === 'Enter') renderRecords(); };
         window.toggleSort = () => { window.priceSort = window.priceSort === 'none' ? 'asc' : (window.priceSort === 'asc' ? 'desc' : 'none'); document.getElementById('sort-label').innerText = window.priceSort.toUpperCase(); renderRecords(); };
-        
-        window.saveRecord = async () => {
-            const title = document.getElementById('in-title').value; if(!title) return;
-            await addDoc(archiveCol, { 
-                category: window.currentCategory, 
-                title, 
-                author: document.getElementById('in-author').value, 
-                year: document.getElementById('in-year').value, 
-                watchedDate: document.getElementById('in-date').value, 
-                img: document.getElementById('in-img').value, 
-                review: document.getElementById('in-review').value, 
-                price: Number(document.getElementById('in-price').value) || 0, 
-                comments: [], 
-                timestamp: Date.now() 
-            });
-            document.querySelectorAll('#main input, #main textarea').forEach(i => i.value='');
-            alert("Archive Saved!");
-        };
+        window.saveRecord = async () => { const title = document.getElementById('in-title').value; if(!title) return; await addDoc(archiveCol, { category: window.currentCategory, title, author: document.getElementById('in-author').value, year: document.getElementById('in-year').value, watchedDate: document.getElementById('in-date').value, img: document.getElementById('in-img').value, review: document.getElementById('in-review').value, price: Number(document.getElementById('in-price').value) || 0, comments: [], timestamp: Date.now() }); document.querySelectorAll('#main input, #main textarea').forEach(i => i.value=''); };
 
         window.toggleEditMode = async () => {
-            const titleField = document.getElementById('edit-title'), reviewField = document.getElementById('edit-review'), priceDisplay = document.getElementById('edit-price-display'), priceInput = document.getElementById('edit-price'), updateBtn = document.getElementById('update-btn');
-            if (!window.isEditing) { 
-                window.isEditing = true; 
-                titleField.readOnly = false; 
-                reviewField.readOnly = false; 
-                priceDisplay.readOnly = false;
-                priceDisplay.value = priceInput.value; 
-                updateBtn.innerText = "SAVE CHANGES"; 
-            } else { 
-                const newPrice = Number(priceDisplay.value) || 0;
-                await updateDoc(doc(db, "archives", window.selectedId), { title: titleField.value, review: reviewField.value, price: newPrice }); 
-                window.isEditing = false; 
-                titleField.readOnly = true; 
-                reviewField.readOnly = true; 
-                priceDisplay.readOnly = true;
-                priceDisplay.value = formatComma(newPrice); 
-                priceInput.value = newPrice;
-                updateBtn.innerText = "EDIT"; 
-            }
+            const t = document.getElementById('edit-title'), r = document.getElementById('edit-review'), d = document.getElementById('edit-price-display'), p = document.getElementById('edit-price'), b = document.getElementById('update-btn');
+            if (!window.isEditing) { window.isEditing = true; t.readOnly = r.readOnly = d.readOnly = false; d.value = p.value; b.innerText = "SAVE CHANGES"; }
+            else { const np = Number(d.value) || 0; await updateDoc(doc(db, "archives", window.selectedId), { title: t.value, review: r.value, price: np }); window.isEditing = false; t.readOnly = r.readOnly = d.readOnly = true; d.value = formatComma(np); p.value = np; b.innerText = "EDIT"; }
         };
 
-        window.closeModal = () => { 
-            const m = document.getElementById('modal'); 
-            m.classList.remove('active'); 
-            setTimeout(() => { 
-                m.style.display = 'none'; 
-                if(window.lastClickedDate && document.getElementById('cal').classList.contains('active')) {
-                    const form = document.getElementById('event-form');
-                    form.style.display = 'block';
-                    document.getElementById('ev-start').value = window.lastClickedDate;
-                    document.getElementById('ev-end').value = window.lastClickedDate;
-                    location.href = "#event-form";
-                    document.getElementById('ev-text').focus();
-                    window.lastClickedDate = null;
-                }
-                window.selectedId = null; 
-                window.replyToId = null; 
-            }, 500); 
-        };
-        
+        window.closeModal = () => { const m = document.getElementById('modal'); m.classList.remove('active'); setTimeout(() => { m.style.display = 'none'; if(window.lastClickedDate && document.getElementById('cal').classList.contains('active')) { const f = document.getElementById('event-form'); f.style.display = 'block'; document.getElementById('ev-start').value = document.getElementById('ev-end').value = window.lastClickedDate; location.href = "#event-form"; document.getElementById('ev-text').focus(); window.lastClickedDate = null; } window.selectedId = window.replyToId = null; }, 500); };
         window.changeMonth = (v) => { window.currentCalDate.setMonth(window.currentCalDate.getMonth()+v); renderCalendar(); };
-        
         window.renderCalendar = () => {
             const cal = document.getElementById('calendar'); cal.innerHTML = '';
             const y = window.currentCalDate.getFullYear(), m = window.currentCalDate.getMonth();
             document.getElementById('cal-month-title').innerText = `${new Intl.DateTimeFormat('en-US',{month:'long'}).format(window.currentCalDate).toUpperCase()}`;
             const first = new Date(y, m, 1).getDay(), days = new Date(y, m+1, 0).getDate();
-            
             for(let i=0; i<first; i++) cal.appendChild(document.createElement('div')).className='cal-day';
-            
             for(let d=1; d<=days; d++) {
-                const day = document.createElement('div'); 
-                day.className = 'cal-day'; 
-                const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                const day = document.createElement('div'); day.className = 'cal-day'; const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
                 day.innerHTML = `<span>${d}</span>`;
-                
-                const archiveRecord = window.records.find(r => r.watchedDate === ds);
-                if(archiveRecord && archiveRecord.img) {
-                    day.style.backgroundImage = `url(${archiveRecord.img})`;
-                    const overlay = document.createElement('div');
-                    overlay.className = 'cal-day-overlay';
-                    day.appendChild(overlay);
-                }
-
-                const dayEvents = window.events.filter(e => ds >= e.start && ds <= e.end);
-                if(dayEvents.length > 0) {
-                    const pin = document.createElement('div');
-                    pin.className = 'cal-pin';
-                    pin.innerHTML = '<i class="fas fa-thumbtack"></i>';
-                    pin.onclick = (ex) => {
-                        ex.stopPropagation();
-                        document.getElementById('event-form').style.display='block';
-                        document.getElementById('ev-text').value = dayEvents[0].text;
-                        document.getElementById('ev-memo').value = dayEvents[0].memo || '';
-                        document.getElementById('ev-start').value = dayEvents[0].start;
-                        document.getElementById('ev-end').value = dayEvents[0].end;
-                        location.href = "#event-form";
-                    };
-                    day.appendChild(pin);
-                }
-
-                day.onclick = () => { 
-                    if(archiveRecord) {
-                        window.lastClickedDate = ds;
-                        openModal(archiveRecord);
-                    } else {
-                        document.getElementById('event-form').style.display='block'; 
-                        document.getElementById('ev-text').value = '';
-                        document.getElementById('ev-memo').value = '';
-                        document.getElementById('ev-start').value = ds; 
-                        document.getElementById('ev-end').value = ds; 
-                        location.href = "#event-form";
-                    }
-                };
-
-                dayEvents.forEach(e => {
-                    const ev = document.createElement('div'); 
-                    ev.className = 'cal-event'; 
-                    ev.innerText = e.text;
-                    ev.onclick = (ex) => { 
-                        ex.stopPropagation(); 
-                        if(confirm(`Delete this event memory?`)) { 
-                            window.events = window.events.filter(v => v.id !== e.id); 
-                            localStorage.setItem('events_v5', JSON.stringify(window.events)); 
-                            renderCalendar(); 
-                        } 
-                    };
-                    day.appendChild(ev);
-                });
+                const ar = window.records.find(r => r.watchedDate === ds);
+                if(ar && ar.img) { day.style.backgroundImage = `url(${ar.img})`; const ov = document.createElement('div'); ov.className = 'cal-day-overlay'; day.appendChild(ov); }
+                const de = window.events.filter(e => ds >= e.start && ds <= e.end);
+                if(de.length > 0) { const pin = document.createElement('div'); pin.className = 'cal-pin'; pin.innerHTML = '<i class="fas fa-thumbtack"></i>'; pin.onclick = (ex) => { ex.stopPropagation(); document.getElementById('event-form').style.display='block'; document.getElementById('ev-text').value = de[0].text; document.getElementById('ev-memo').value = de[0].memo || ''; document.getElementById('ev-start').value = de[0].start; document.getElementById('ev-end').value = de[0].end; location.href = "#event-form"; }; day.appendChild(pin); }
+                day.onclick = () => { if(ar) { window.lastClickedDate = ds; openModal(ar); } else { document.getElementById('event-form').style.display='block'; document.getElementById('ev-text').value = document.getElementById('ev-memo').value = ''; document.getElementById('ev-start').value = document.getElementById('ev-end').value = ds; location.href = "#event-form"; } };
+                de.forEach(e => { const ev = document.createElement('div'); ev.className = 'cal-event'; ev.innerText = e.text; ev.onclick = (ex) => { ex.stopPropagation(); if(confirm(`Delete?`)) { window.events = window.events.filter(v => v.id !== e.id); localStorage.setItem('events_v5', JSON.stringify(window.events)); renderCalendar(); } }; day.appendChild(ev); });
                 cal.appendChild(day);
             }
         };
 
-        window.saveEvent = () => { const text = document.getElementById('ev-text').value; if(!text) return; window.events.push({id:Date.now(), text, memo:document.getElementById('ev-memo').value, start:document.getElementById('ev-start').value, end:document.getElementById('ev-end').value}); localStorage.setItem('events_v5', JSON.stringify(window.events)); renderCalendar(); document.getElementById('event-form').style.display='none'; };
-
-        window.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                const modal = document.getElementById('modal');
-                if (modal.style.display === 'flex') {
-                    closeModal();
-                }
-            }
-        });
+        window.saveEvent = () => { const t = document.getElementById('ev-text').value; if(!t) return; window.events.push({id:Date.now(), text:t, memo:document.getElementById('ev-memo').value, start:document.getElementById('ev-start').value, end:document.getElementById('ev-end').value}); localStorage.setItem('events_v5', JSON.stringify(window.events)); renderCalendar(); document.getElementById('event-form').style.display='none'; };
+        window.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
     </script>
 </body>
 </html>
