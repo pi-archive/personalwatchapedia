@@ -139,47 +139,65 @@ nav ul {
         </ul>
     </nav>
 
-    <section id="main" class="scroller active">
-        <h1 style="font-size: 6vw; font-family: 'Syne'; font-weight: 800; margin-bottom: 40px; letter-spacing: -0.03em;">CREATE_LOG</h1>
-        <div class="imessage-container">
-            <div style="display: flex; background: rgba(120,120,128,0.12); border-radius: 12px; padding: 3px; margin-bottom: 30px; gap: 2px;">
-                <div class="cat-btn active" id="btn-movie" onclick="setCategory('movie')" style="flex:1; padding:10px; text-align:center; cursor:pointer; border-radius:10px; font-size:0.75rem; font-weight:700;">Movie</div>
-                <div class="cat-btn" id="btn-book" onclick="setCategory('book')" style="flex:1; padding:10px; text-align:center; cursor:pointer; border-radius:10px; font-size:0.75rem; font-weight:700;">Book</div>
-                <div class="cat-btn" id="btn-wish" onclick="setCategory('wish')" style="flex:1; padding:10px; text-align:center; cursor:pointer; border-radius:10px; font-size:0.75rem; font-weight:700;">Wish</div>
-            </div>
-            
-            <div id="wish-cat-selector" style="display:none;">
-                <div class="ios-label">Wish Category</div>
-                <select id="in-wish-type">
-                    <option value="movie">Movie Wish</option>
-                    <option value="book">Book Wish</option>
-                </select>
-            </div>
-
-          <div class="ios-label">Title</div>
-<div style="position: relative; width: 100%; height: 44px; margin-bottom: 15px;">
-    <input type="text" id="in-title" 
-           style="width: 100%; height: 100%; padding-right: 45px; box-sizing: border-box; margin: 0;">
+  <section id="main" class="scroller active">
+    <h1 style="font-size: 6vw; font-family: 'Syne'; font-weight: 800; margin-bottom: 40px; letter-spacing: -0.03em;">CREATE_LOG</h1>
     
-    <button type="button" onclick="searchCine21()" 
-            title="씨네21에서 검색"
-            style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); 
-                   background: none; border: none; color: var(--ios-accent); cursor: pointer; 
-                   font-size: 1.2rem; padding: 5px; display: flex; align-items: center; 
-                   justify-content: center; line-height: 0;">
-        <i class="fas fa-magic"></i>
-    </button>
-</div>
-
-
-            <div id="date-field"><div class="ios-label">Watched Date</div><input type="date" id="in-date"></div>
-            <div class="ios-label">Poster Image URL</div><input type="text" id="in-img">
-            <div class="ios-label" id="label-review">Review</div><textarea id="in-review" rows="4"></textarea>
-            
-            <div id="price-input-group"><div class="ios-label">Value (Price)</div><input type="number" id="in-price">
-<button class="save-btn" onclick="saveRecord()">SAVE TO ARCHIVE</button>
+    <div class="imessage-container">
+        <div style="display: flex; background: rgba(120,120,128,0.12); border-radius: 12px; padding: 3px; margin-bottom: 30px; gap: 2px;">
+            <div class="cat-btn active" id="btn-movie" onclick="setCategory('movie')" style="flex:1; padding:10px; text-align:center; cursor:pointer; border-radius:10px; font-size:0.75rem; font-weight:700;">Movie</div>
+            <div class="cat-btn" id="btn-book" onclick="setCategory('book')" style="flex:1; padding:10px; text-align:center; cursor:pointer; border-radius:10px; font-size:0.75rem; font-weight:700;">Book</div>
+            <div class="cat-btn" id="btn-wish" onclick="setCategory('wish')" style="flex:1; padding:10px; text-align:center; cursor:pointer; border-radius:10px; font-size:0.75rem; font-weight:700;">Wish</div>
         </div>
-    </section>
+
+        <div class="ios-label">Title</div>
+        <div style="position: relative; width: 100%; height: 44px; margin-bottom: 18px;">
+            <input type="text" id="in-title" placeholder="Enter title..."
+                   style="width: 100%; height: 100%; padding-right: 45px; box-sizing: border-box; margin: 0;">
+            <button type="button" onclick="searchCine21()" title="씨네21에서 검색"
+                    style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--ios-accent); cursor: pointer; font-size: 1.2rem; padding: 5px; display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-magic"></i>
+            </button>
+        </div>
+
+        <div id="wish-cat-selector" style="display:none; margin-bottom:18px;">
+            <div class="ios-label">Wish Category</div>
+            <select id="in-wish-type">
+                <option value="movie">Movie Wish</option>
+                <option value="book">Book Wish</option>
+            </select>
+        </div>
+
+        <div id="meta-input-group" style="display:flex; gap:15px;">
+            <div style="flex: 2;">
+                <div class="ios-label" id="label-author">Director</div>
+                <input type="text" id="in-author">
+            </div>
+            <div style="flex: 1;" id="year-field">
+                <div class="ios-label">Year</div>
+                <input type="text" id="in-year" placeholder="2026">
+            </div>
+        </div>
+
+        <div id="date-field">
+            <div class="ios-label">Watched Date</div>
+            <input type="date" id="in-date">
+        </div>
+
+        <div class="ios-label">Poster Image URL</div>
+        <input type="text" id="in-img" placeholder="https://...">
+
+        <div class="ios-label" id="label-review">Review</div>
+        <textarea id="in-review" rows="4" placeholder="Write your thoughts..."></textarea>
+
+        <div id="price-input-group">
+            <div class="ios-label">Value (Price)</div>
+            <input type="number" id="in-price" placeholder="0">
+        </div>
+
+        <button class="save-btn" onclick="saveRecord()">SAVE TO ARCHIVE</button>
+    </div>
+</section>
+
 
     <section id="dvd" class="scroller">
     <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px;">
@@ -351,17 +369,45 @@ nav ul {
         window.handleSearch = (e) => { if(e.key === 'Enter') renderRecords(); };
 
         // [5] 카테고리 설정
-        window.setCategory = (cat) => {
-            window.currentCategory = cat;
-            document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('btn-' + cat).classList.add('active');
-            const isWish = (cat === 'wish'), isBook = (cat === 'book');
-            document.getElementById('wish-cat-selector').style.display = isWish ? 'block' : 'none';
-            document.getElementById('year-field').style.display = (isWish || isBook) ? 'none' : 'block';
-            document.getElementById('date-field').style.display = isWish ? 'none' : 'block';
-            document.getElementById('price-input-group').style.display = (isWish || isBook) ? 'none' : 'block';
-            document.getElementById('label-author').innerText = isBook ? 'Author' : 'Director';
-        };
+  window.setCategory = (cat) => {
+    window.currentCategory = cat;
+    
+    // 버튼 활성화 스타일 제어
+    document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('btn-' + cat).classList.add('active');
+
+    // 제어할 요소들 가져오기
+    const metaGroup = document.getElementById('meta-input-group'); // 감독/연도 그룹
+    const yearField = document.getElementById('year-field');      // 연도 칸
+    const priceGroup = document.getElementById('price-input-group'); // 가격 칸
+    const dateField = document.getElementById('date-field');       // 날짜 칸
+    const wishSelector = document.getElementById('wish-cat-selector'); // 위시 선택창
+    const labelAuthor = document.getElementById('label-author');   // 감독/저자 라벨
+
+    if (cat === 'movie') {
+        metaGroup.style.display = 'flex';
+        yearField.style.display = 'block';
+        priceGroup.style.display = 'block';
+        dateField.style.display = 'block';
+        wishSelector.style.display = 'none';
+        labelAuthor.innerText = 'Director';
+    } 
+    else if (cat === 'book') {
+        metaGroup.style.display = 'flex';
+        yearField.style.display = 'none'; // 책: 연도 숨김
+        priceGroup.style.display = 'none'; // 책: 가격 숨김
+        dateField.style.display = 'block';
+        wishSelector.style.display = 'none';
+        labelAuthor.innerText = 'Author'; // 라벨 변경
+    } 
+    else if (cat === 'wish') {
+        metaGroup.style.display = 'none'; // 메모: 감독/연도 숨김
+        priceGroup.style.display = 'none'; // 메모: 가격 숨김
+        dateField.style.display = 'none'; // 메모: 날짜 숨김
+        wishSelector.style.display = 'block';
+    }
+};
+
 
         // [6] Firebase 저장 및 데이터 감시
         window.saveRecord = async () => {
