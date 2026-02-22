@@ -3,28 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#000000">
     <title>Archive / Modern Vision</title>
     <link href="https://fonts.googleapis.com/css2?family=La+Belle+Aurore&family=Syne:wght@400;700;800;900&display=swap" rel="stylesheet">
-    <style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
         :root {            
-            --bg: #000000;            
-            --ios-accent: #007aff;            
+            --bg: #000000; 
+            --text: #ffffff; 
+            --ios-accent: #007aff; 
             --ios-pink: #ff007a; 
             --ios-blue: #007aff; 
-            --text: #ffffff;            
-            --ios-blur: rgba(28, 28, 30, 0.7);            
+            --ios-blur: rgba(28, 28, 30, 0.7); 
+            --card-border: rgba(255,255,255,0.1); 
+            --card-bg: #1c1c1e;
             --apple-font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
         }
-        
-        body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--apple-font); overflow-x: hidden; letter-spacing: -0.01em; padding-bottom: env(safe-area-inset-bottom); }
-        .bg-text { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 25vw; font-weight: 900; color: rgba(255, 255, 255, 0.02); white-space: nowrap; z-index: -1; pointer-events: none; text-transform: uppercase; font-family: 'Syne'; }
 
-        nav { position: fixed; top: 0; width: 100%; padding: 30px 50px; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; z-index: 1000; background: rgba(0,0,0,0.8); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+        /* ⚠️ 중요: 스크립트의 'light-mode'와 이름을 똑같이 맞췄습니다 */
+        body.light-mode { 
+            --bg: #f2f2f7; 
+            --text: #1c1c1e; 
+            --ios-blur: rgba(255, 255, 255, 0.7); 
+            --card-border: rgba(0,0,0,0.1); 
+            --card-bg: #ffffff; 
+        }
+
+        body { 
+            margin: 0; 
+            background: var(--bg); 
+            color: var(--text); 
+            font-family: var(--apple-font); 
+            overflow-x: hidden; 
+            letter-spacing: -0.01em; 
+            padding-bottom: env(safe-area-inset-bottom); 
+            /* 배경과 글자색이 변할 때 부드럽게 애니메이션 효과를 줍니다 */
+            transition: background 0.4s ease, color 0.4s ease; 
+        }
+        
+        .bg-text { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 25vw; font-weight: 900; color: var(--card-border); z-index: -1; pointer-events: none; text-transform: uppercase; font-family: 'Syne'; transition: color 0.4s; }
+        
+        nav { position: fixed; top: 0; width: 100%; padding: 30px 50px; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; z-index: 1000; background: var(--ios-blur); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 0.5px solid var(--card-border); transition: background 0.4s; }
         nav .logo { font-weight: 800; font-size: 1.2rem; cursor: pointer; font-family: 'Syne'; }
         
-        .search-area { position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; }
-        #search-input-wrapper { display: none; background: rgba(255,255,255,0.12); border-radius: 18px; padding: 6px 14px; border: 0.5px solid rgba(255,255,255,0.1); }
-        #search-query { background: transparent; border: none; color: white; outline: none; font-size: 0.85rem; width: 140px; font-family: var(--apple-font); }
+        /* 테마 토글 버튼 */
+        .theme-toggle { cursor: pointer; font-size: 1.1rem; margin-right: 15px; color: var(--text); transition: 0.3s; opacity: 0.6; }
+        .theme-toggle:hover { opacity: 1; }
 
         nav ul { list-style: none; display: flex; gap: 35px; margin: 0; padding: 0; }
         nav li { font-size: 0.65rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.15em; cursor: pointer; opacity: 0.4; transition: 0.3s; }
@@ -32,259 +58,577 @@
 
         .scroller { padding: 140px 5vw; min-height: 100vh; display: none; position: relative; }
         .scroller.active { display: block; }
-
-        .section-header { display: flex; justify-content: flex-end; align-items: center; height: 40px; margin-bottom: 20px; }
-
         .archive-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 30px; }
         .archive-item { cursor: pointer; transition: 0.4s cubic-bezier(0.1, 0.9, 0.2, 1); }
-        .img-wrap { width: 100%; aspect-ratio: 2/3; overflow: hidden; border-radius: 22px; margin-bottom: 12px; background: #1c1c1e; border: 0.5px solid rgba(255,255,255,0.1); }
-        .archive-item img { width: 100%; height: 100%; object-fit: cover; }
+        .img-wrap { width: 100%; aspect-ratio: 2/3; overflow: hidden; border-radius: 22px; margin-bottom: 12px; background: var(--card-bg); border: 0.5px solid var(--card-border); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .img-wrap img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
+        .archive-item:hover .img-wrap img { transform: scale(1.05); }
 
-        .imessage-container { max-width: 480px; margin: 0 auto; background: var(--ios-blur); border-radius: 35px; padding: 40px; border: 0.5px solid rgba(255,255,255,0.15); }
-        .ios-label { font-size: 0.7rem; color: #8e8e93; margin-bottom: 8px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em; }
-        input, textarea { width: 100%; background: rgba(255,255,255,0.08); border: none; border-radius: 16px; padding: 16px; color: white; outline: none; margin-bottom: 18px; box-sizing: border-box; font-family: var(--apple-font); }
-        input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
-        .save-btn { width: 100%; padding: 18px; border-radius: 18px; background: var(--ios-accent); color: #fff; font-weight: 700; border: none; cursor: pointer; }
+        .imessage-container { max-width: 480px; margin: 0 auto; background: var(--card-bg); border-radius: 35px; padding: 40px; border: 0.5px solid var(--card-border); box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
+        input, textarea, select { width: 100%; background: var(--card-border); border: none; border-radius: 16px; padding: 16px; color: var(--text); outline: none; margin-bottom: 18px; box-sizing: border-box; font-family: var(--apple-font); font-size: 1rem; }
+        .ios-label { font-size: 0.7rem; color: #8e8e93; margin-bottom: 8px; text-transform: uppercase; font-weight: 600; padding-left: 5px; }
+        .save-btn { width: 100%; padding: 18px; background: var(--ios-accent); color: white; border: none; border-radius: 18px; font-weight: 800; cursor: pointer; font-size: 1rem; transition: 0.3s; }
 
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); z-index: 2000; display: none; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.5s ease; overflow: hidden; }
-        .modal.active { display: flex; opacity: 1; }
-        .modal-bg-glow { position: absolute; top: -10%; left: -10%; width: 120%; height: 120%; background-size: cover; background-position: center; filter: blur(80px) brightness(0.5) saturate(1.8); z-index: -1; opacity: 0.8; }
-        .modal-content { position: relative; width: 95%; max-width: 920px; display: flex; flex-direction: row; gap: 30px; background: rgba(28, 28, 30, 0.5); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border-radius: 40px; padding: 40px; border: 1px solid rgba(255, 255, 255, 0.15); height: 82vh; overflow: hidden; box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8); }
-        
-        /* [추가] 모달 닫기 버튼 */
-        .modal-close-x { position: absolute; top: 25px; right: 25px; width: 32px; height: 32px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; z-index: 10; transition: 0.2s; border: 1px solid rgba(255,255,255,0.1); }
-        .modal-close-x:hover { background: rgba(255,255,255,0.2); transform: scale(1.1); }
-
-        .modal-left { width: 360px; flex-shrink: 0; }
-        .modal-left img { width: 100%; height: 100%; object-fit: cover; border-radius: 25px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
-        .modal-right { flex: 1; display: flex; flex-direction: column; overflow-y: auto; padding-right: 15px; }
-        
-        .edit-field { background: transparent; border: 1px solid transparent; color: white; transition: 0.2s; padding: 8px; width: 100%; margin-left: -8px; }
-        .edit-field:focus { background: rgba(255,255,255,0.06); border-color: var(--ios-accent); border-radius: 8px; outline: none; }
-
-        #comment-section { margin-top: 30px; background: rgba(0, 0, 0, 0.2); border-radius: 30px; padding: 25px; border: 1px solid rgba(255,255,255,0.08); display: none; }
-        .chat-wrap { display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; }
-        .comment-item { padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); position: relative; }
-        .comment-item.reply { margin-left: 30px; border-left: 2px solid var(--ios-accent); padding-left: 15px; border-bottom: none; margin-top: -10px; background: rgba(255,255,255,0.02); border-radius: 0 0 0 10px; }
-
-        /* Calendar Styles */
         #calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
-        .cal-day { position: relative; min-height: 120px; background: rgba(255,255,255,0.03); border-radius: 15px; padding: 12px; border: 0.5px solid rgba(255,255,255,0.05); cursor: pointer; transition: 0.3s; background-size: cover; background-position: center; overflow: hidden; }
-        .cal-day:hover { background: rgba(255,255,255,0.08); }
-        .cal-day span { position: relative; z-index: 5; font-size: 0.75rem; font-weight: 700; opacity: 0.6; }
-        .cal-day-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.4); z-index: 1; }
-        .cal-pin { position: absolute; top: 10px; right: 10px; font-size: 1.1rem; color: #ff3b30; z-index: 10; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); animation: pinBounce 1s infinite alternate; }
-        @keyframes pinBounce { from { transform: translateY(0); } to { transform: translateY(-3px); } }
-        .cal-event { position: relative; z-index: 6; background: var(--ios-accent); font-size: 0.65rem; padding: 5px 8px; border-radius: 8px; margin-top: 5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .cal-day { position: relative; min-height: 120px; background: var(--card-bg); border-radius: 15px; padding: 12px; border: 0.5px solid var(--card-border); cursor: pointer; background-size: cover; background-position: center; transition: 0.3s; }
+        .cal-day span { font-weight: 800; font-size: 0.9rem; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+        .event-pin { position: absolute; top: 10px; right: 10px; width: 8px; height: 8px; background-color: #ff3b30; border-radius: 50%; box-shadow: 0 0 8px rgba(255, 59, 48, 0.6); z-index: 5; }
 
-        /* Stats Styles */
-        .stats-poster { margin-top: 40px; display: flex; flex-direction: column; gap: 0; line-height: 0.85; }
-        .large-text { font-family: 'Syne'; font-size: 11vw; font-weight: 900; letter-spacing: -0.05em; display: block; text-transform: uppercase; }
-        .accent-pink { color: var(--ios-pink); font-family: 'Syne'; font-size: 13vw; font-weight: 900; display: block; margin: -1vw 0; }
-        .accent-blue { color: var(--ios-blue); font-family: 'Syne'; font-size: 13vw; font-weight: 900; display: inline-block; margin-right: 20px; }
-        .stat-row { display: flex; align-items: baseline; }
-
-        @media (max-width: 600px) {
-            nav { padding: 20px; flex-wrap: nowrap; overflow: hidden; }
-            nav ul { gap: 20px; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 5px; }
-            nav ul::-webkit-scrollbar { display: none; }
-            nav li { white-space: nowrap; flex-shrink: 0; }
-            
-            .search-area { display: none; } 
-            .comment-item.reply { margin-left: 15px; padding-left: 10px; }
-            .modal-content { flex-direction: column; height: 90vh; padding: 25px; gap: 20px; overflow-y: auto; }
-            .modal-close-x { top: 15px; right: 15px; width: 28px; height: 28px; }
-            .modal-left { width: 100%; height: 250px; flex-shrink: 0; }
-            .modal-right { overflow-y: visible; padding-right: 0; }
-            .large-text { font-size: 15vw; }
-            .accent-pink, .accent-blue { font-size: 18vw; }
-            .archive-grid { grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); z-index: 2000; display: none; justify-content: center; align-items: center; opacity: 0; transition: 0.4s; backdrop-filter: blur(10px); }
+        .modal.active { display: flex; opacity: 1; }
+        .modal-content { position: relative; width: 92%; max-width: 1000px; display: flex; gap: 40px; background: var(--card-bg); border-radius: 40px; padding: 40px; border: 1px solid var(--card-border); height: 85vh; overflow: hidden; }
+        .modal-close-x { position: absolute; top: 25px; right: 25px; cursor: pointer; font-size: 1.5rem; z-index: 10; opacity: 0.5; transition: 0.3s; color: var(--text); }
+        .modal-left { width: 40%; flex-shrink: 0; border-radius: 25px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+        .modal-left img { width: 100%; height: 100%; object-fit: cover; }
+        .modal-right { flex: 1; display: flex; flex-direction: column; overflow-y: auto; padding-right: 10px; }
+        
+        .cmt-item { margin-bottom: 12px; padding: 12px 18px; background: var(--card-border); border-radius: 20px; font-size: 0.9rem; line-height: 1.4; position: relative; }
+        
+        #capture-area { 
+            position: fixed; left: -9999px; top: 0; width: 400px; background: #fff; padding: 40px; color: #000; 
+            display: flex; flex-direction: column; align-items: center; text-align: center; border-radius: 0;
         }
+/* 상단바 모바일 좌우 스와이프 최적화 */
+nav {
+    display: flex;
+    gap: 25px; /* 기존 gap 조정 */
+    overflow-x: auto; /* 좌우 스크롤 허용 */
+    white-space: nowrap; /* 메뉴 줄바꿈 방지 */
+    -webkit-overflow-scrolling: touch; /* 부드러운 스크롤 */
+    padding: 20px 30px; /* 좌우 여백 확보 */
+}
 
-        .comment-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-        .comment-author { font-size: 0.75rem; font-weight: 800; color: var(--ios-accent); text-transform: uppercase; }
-        .comment-text { font-size: 0.9rem; color: #efefef; line-height: 1.5; word-break: break-all; }
-        .comment-actions { display: flex; gap: 12px; margin-top: 8px; font-size: 0.65rem; opacity: 0.4; transition: 0.2s; }
-        .comment-item:hover .comment-actions { opacity: 1; }
-        .comment-actions span { cursor: pointer; }
-        .comment-actions span:hover { color: var(--ios-accent); }
+nav::-webkit-scrollbar {
+    display: none; /* 스크롤바 숨김 */
+}
 
-        .chat-input-bar { display: flex; background: rgba(255,255,255,0.1); border-radius: 30px; padding: 6px 6px 6px 18px; align-items: center; gap: 10px; border: 1px solid rgba(255,255,255,0.05); margin-top: 15px; }
-        #cmt-author { width: 60px; border-right: 1px solid rgba(255,255,255,0.1) !important; padding: 8px 0; margin-bottom: 0; background: none; flex-shrink: 0; }
-        #cmt-text { flex: 1; margin-bottom: 0; background: none; padding: 8px 0; }
-        .send-btn { background: var(--ios-accent); color: white; border: none; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        .more-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 16px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; cursor: pointer; margin-top: 20px; text-transform: uppercase; }
+nav .logo {
+    flex-shrink: 0; /* 로고 크기 고정 */
+    position: sticky;
+    left: 0;
+    margin-right: 20px;
+}
+
+nav ul {
+    display: flex;
+    gap: 30px;
+    flex-shrink: 0;
+}
     </style>
 </head>
 <body>
     <div class="bg-text" id="bgText">ARCHIVE</div>
+    
     <nav>
         <div class="logo" onclick="showSection('main')">ARCHIVE.</div>
-        <div class="search-area">
-            <i class="fas fa-search search-trigger" onclick="toggleSearchBox()" style="cursor:pointer;"></i>
-            <div id="search-input-wrapper">
-                <input type="text" id="search-query" placeholder="Search memories..." onkeypress="handleSearch(event)">
+        <div class="search-area" style="position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-adjust" onclick="toggleTheme()" style="cursor:pointer; margin-right:5px; opacity:0.7;"></i>
+            
+            <i class="fas fa-search" onclick="toggleSearchBox()" style="cursor:pointer;"></i>
+            <div id="search-input-wrapper" style="display: none;">
+                <input type="text" id="search-query" placeholder="Search title..." onkeypress="handleSearch(event)" style="margin-bottom:0; padding:8px 15px; width:150px; font-size:0.8rem;">
             </div>
         </div>
         <ul>
             <li onclick="showSection('main')" id="nav-main" class="active">Write</li>
-            <li onclick="showSection('dvd')" id="nav-dvd">DVD Store</li>
+            <li onclick="showSection('dvd')" id="nav-dvd">DVD</li>
             <li onclick="showSection('book')" id="nav-book">Library</li>
+            <li onclick="showSection('wish')" id="nav-wish">Wishlist</li>
             <li onclick="showSection('cal')" id="nav-cal">Calendar</li>
             <li onclick="showSection('stats')" id="nav-stats">Count</li>
         </ul>
     </nav>
 
     <section id="main" class="scroller active">
-        <h1 style="font-size: 6vw; font-family: 'Syne'; font-weight: 800; margin-bottom: 40px; letter-spacing: -0.04em;">MEMORIES_</h1>
+        <h1 style="font-size: 6vw; font-family: 'Syne'; font-weight: 800; margin-bottom: 40px; letter-spacing: -0.03em;">CREATE_LOG</h1>
         <div class="imessage-container">
-            <div style="display: flex; background: rgba(255,255,255,0.05); border-radius: 12px; padding: 4px; margin-bottom: 30px;">
-                <div class="cat-btn active" id="btn-movie" onclick="setCategory('movie')" style="flex:1; padding:12px; text-align:center; cursor:pointer; border-radius:10px; font-size:0.75rem; font-weight:700;">Movie</div>
-                <div class="cat-btn" id="btn-book" onclick="setCategory('book')" style="flex:1; padding:12px; text-align:center; cursor:pointer; border-radius:10px; font-size:0.75rem; font-weight:700;">Book</div>
+            <div style="display: flex; background: rgba(120,120,128,0.12); border-radius: 12px; padding: 3px; margin-bottom: 30px; gap: 2px;">
+                <div class="cat-btn active" id="btn-movie" onclick="setCategory('movie')" style="flex:1; padding:10px; text-align:center; cursor:pointer; border-radius:10px; font-size:0.75rem; font-weight:700;">Movie</div>
+                <div class="cat-btn" id="btn-book" onclick="setCategory('book')" style="flex:1; padding:10px; text-align:center; cursor:pointer; border-radius:10px; font-size:0.75rem; font-weight:700;">Book</div>
+                <div class="cat-btn" id="btn-wish" onclick="setCategory('wish')" style="flex:1; padding:10px; text-align:center; cursor:pointer; border-radius:10px; font-size:0.75rem; font-weight:700;">Wish</div>
             </div>
-            <div class="ios-label">Title</div><input type="text" id="in-title">
-            <div style="display:flex; gap:15px;">
-                <div style="flex: 2;"><div class="ios-label" id="label-author">Director</div><input type="text" id="in-author"></div>
-                <div style="flex: 1;" id="year-field"><div class="ios-label">Year</div><input type="text" id="in-year" placeholder="2026"></div>
+            
+            <div id="wish-cat-selector" style="display:none;">
+                <div class="ios-label">Wish Category</div>
+                <select id="in-wish-type">
+                    <option value="movie">Movie Wish</option>
+                    <option value="book">Book Wish</option>
+                </select>
             </div>
+
+          <div class="ios-label">Title</div>
+<div style="position: relative; width: 100%; height: 44px; margin-bottom: 15px;">
+    <input type="text" id="in-title" 
+           style="width: 100%; height: 100%; padding-right: 45px; box-sizing: border-box; margin: 0;">
+    
+    <button type="button" onclick="searchCine21()" 
+            title="씨네21에서 검색"
+            style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); 
+                   background: none; border: none; color: var(--ios-accent); cursor: pointer; 
+                   font-size: 1.2rem; padding: 5px; display: flex; align-items: center; 
+                   justify-content: center; line-height: 0;">
+        <i class="fas fa-magic"></i>
+    </button>
+</div>
+
+
             <div id="date-field"><div class="ios-label">Watched Date</div><input type="date" id="in-date"></div>
-            <div class="ios-label">Image URL</div><input type="text" id="in-img">
-            <div class="ios-label">Review</div><textarea id="in-review" rows="3"></textarea>
-            <div id="price-input-group"><div class="ios-label">Value</div><input type="number" id="in-price"></div>
-            <button class="save-btn" onclick="saveRecord()">Save Archive</button>
+            <div class="ios-label">Poster Image URL</div><input type="text" id="in-img">
+            <div class="ios-label" id="label-review">Review</div><textarea id="in-review" rows="4"></textarea>
+            
+            <div id="price-input-group"><div class="ios-label">Value (Price)</div><input type="number" id="in-price">
         </div>
     </section>
 
-    <section id="dvd" class="scroller"><div class="section-header"><button onclick="toggleSort()" style="background:rgba(255,255,255,0.05); color:#8e8e93; border:0.5px solid #333; padding:8px 15px; border-radius:12px; font-size:0.65rem; font-weight:700; cursor:pointer;">SORT: <span id="sort-label">DEFAULT</span></button></div><div class="archive-grid" id="dvd-grid"></div></section>
-    <section id="book" class="scroller"><div class="section-header"></div><div class="archive-grid" id="book-grid"></div></section>
-    <section id="cal" class="scroller"><div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:30px;"><h1 id="cal-month-title" style="font-family:'Syne'; font-size:4.5rem; margin:0; font-weight:800; line-height:0.8;">MONTH</h1><div style="display:flex; gap:10px;"><button onclick="changeMonth(-1)" style="background:none; color:white; border:0.5px solid #444; padding:10px 20px; border-radius:12px; font-size:0.7rem; cursor:pointer;">PREV</button><button onclick="changeMonth(1)" style="background:none; color:white; border:0.5px solid #444; padding:10px 20px; border-radius:12px; font-size:0.7rem; cursor:pointer;">NEXT</button></div></div><div id="calendar"></div><div id="event-form" style="display:none; margin-top:40px; background:rgba(255,255,255,0.03); padding:30px; border-radius:25px; border:0.5px solid #333;"><div class="ios-label">Event Memory</div><input type="text" id="ev-text"><div class="ios-label">Memo Detail</div><textarea id="ev-memo" rows="2"></textarea><div style="display:flex; gap:10px; margin-bottom:20px;"><input type="date" id="ev-start"><input type="date" id="ev-end"></div><button class="save-btn" onclick="saveEvent()">Save to Memory</button></div></section>
-    <section id="stats" class="scroller"><div style="font-size: 0.8rem; color: #444; font-weight: 700; letter-spacing: 0.3em; margin-bottom: 20px;">ARCHIVE STATS_</div><div class="stats-poster"><span class="large-text">TOTAL</span><span class="accent-pink" id="stat-movie">0</span><span class="large-text">MOVIES</span><span class="large-text">COLLECTED</span><div class="stat-row"><span class="accent-blue" id="stat-book">0</span><span class="large-text">BOOKS.</span></div></div></section>
+    <section id="dvd" class="scroller">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px;">
+        <h1 style="font-family:'Syne'; font-size: 5vw; font-weight: 800; margin: 0; letter-spacing: -0.03em;">DVD_STORE</h1>
+        <i class="fas fa-external-link-alt" onclick="exportData()" 
+           style="cursor: pointer; opacity: 0.4; font-size: 1.2rem; margin-bottom: 10px; transition: 0.3s;"
+           onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.4"></i>
+    </div>
+    <div class="archive-grid" id="dvd-grid"></div>
+</section>
+
+    <section id="book" class="scroller">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px;">
+        <h1 style="font-family:'Syne'; font-size: 5vw; font-weight: 800; margin: 0; letter-spacing: -0.03em;">LIBRARY</h1>
+        <i class="fas fa-external-link-alt" onclick="exportData()" 
+           style="cursor: pointer; opacity: 0.4; font-size: 1.2rem; margin-bottom: 10px; transition: 0.3s;"
+           onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.4"></i>
+    </div>
+    <div class="archive-grid" id="book-grid"></div>
+</section>
+
+    <section id="wish" class="scroller"><div class="archive-grid" id="wish-grid"></div></section>
+
+    <section id="cal" class="scroller">
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:40px;">
+            <h1 id="cal-month-title" style="font-family:'Syne'; font-size:5rem; margin:0; font-weight:900; line-height:0.8; letter-spacing:-0.05em;">MONTH</h1>
+            <div style="display:flex; gap:12px;">
+                <button onclick="changeMonth(-1)" style="background:var(--card-bg); color:inherit; border:0.5px solid var(--card-border); padding:12px 25px; border-radius:15px; cursor:pointer; font-weight:700;">PREV</button>
+                <button onclick="changeMonth(1)" style="background:var(--card-bg); color:inherit; border:0.5px solid var(--card-border); padding:12px 25px; border-radius:15px; cursor:pointer; font-weight:700;">NEXT</button>
+            </div>
+        </div>
+        <div id="calendar" style="margin-bottom: 60px;"></div>
+
+        <div id="event-form" style="max-width: 600px; margin: 0 auto 100px; background: var(--card-bg); padding: 40px; border-radius: 30px; border: 0.5px solid var(--card-border); box-shadow: 0 30px 60px rgba(0,0,0,0.2);">
+            <div style="font-family:'Syne'; font-size:1.5rem; font-weight:800; margin-bottom:25px;">CALENDAR_NOTE</div>
+            <div class="ios-label">Event Title</div><input type="text" id="ev-text" placeholder="What's your plan?">
+            <div class="ios-label">Memo</div><textarea id="ev-memo" placeholder="Details..." rows="2"></textarea>
+            <div style="display:flex; gap:15px;">
+                <div style="flex:1;"><div class="ios-label">Start Date</div><input type="date" id="ev-start"></div>
+                <div style="flex:1;"><div class="ios-label">End Date</div><input type="date" id="ev-end"></div>
+            </div>
+            <button class="save-btn" onclick="saveEvent()">SAVE SCHEDULE</button>
+            <div id="event-list" style="margin-top: 40px;"></div>
+        </div>
+    </section>
+
+    <section id="stats" class="scroller">
+        <div style="font-family:'Syne'; line-height:0.85; letter-spacing:-0.05em;">
+            <div style="font-size:10vw; font-weight:900;">ACCUMULATED_</div>
+            <div id="stat-movie" style="color:var(--ios-pink); font-size:15vw; font-weight:900;">0</div>
+            <div style="font-size:10vw; font-weight:900;">MOVIES /</div>
+            <div id="stat-book" style="color:var(--ios-blue); font-size:15vw; font-weight:900;">0</div>
+            <div style="font-size:10vw; font-weight:900;">BOOKS.</div>
+        </div>
+        <button onclick="exportToExcel()" class="save-btn" style="margin-top:60px; background:var(--text); color:var(--bg); width:auto; padding:20px 40px;">DOWNLOAD DATASET (XLSX)</button>
+    </section>
 
     <div class="modal" id="modal" onclick="closeModal()">
-        <div class="modal-bg-glow" id="m-bg-glow"></div>
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-close-x" onclick="closeModal()"><i class="fas fa-times"></i></div>
-            
             <div class="modal-left"><img src="" id="m-img"></div>
             <div class="modal-right">
-                <div style="display:flex; justify-content:space-between; align-items:center;"><div id="m-meta" style="color:var(--ios-accent); font-size: 0.75rem; font-weight: 800; letter-spacing: 0.1em;">META INFO</div><button onclick="deleteRecord()" style="background:none; color:#ff453a; border:none; cursor:pointer; font-size:0.65rem; font-weight:800; opacity:0.6;">DELETE CARD</button></div>
-                <input type="text" id="edit-title" class="edit-field" style="font-family:'Syne'; font-size: 3rem; font-weight: 800; margin: 10px 0; letter-spacing: -0.02em;" readonly>
-                <textarea id="edit-review" class="edit-field" style="font-size: 1.1rem; color: #d1d1d6; line-height: 1.7; min-height: 120px; resize: none; margin-bottom: 20px;" readonly></textarea>
-                <div style="display:flex; align-items:center; gap:20px;"><div id="m-price-container" style="display:flex; align-items:center; font-size: 1.5rem; font-weight: 900; color:white; background:rgba(255,255,255,0.05); padding: 5px 15px; border-radius: 12px;"><span style="color:var(--ios-accent); margin-right:5px;">₩</span><input type="text" id="edit-price-display" class="edit-field" style="font-size: 1.5rem; font-weight: 900; width: 140px; margin:0; padding:0;" readonly><input type="number" id="edit-price" style="display:none;"></div><button onclick="toggleEditMode()" id="update-btn" style="background:white; color:black; border:none; padding:12px 24px; border-radius:15px; font-weight:800; cursor:pointer; font-size:0.7rem;">EDIT</button></div>
-                <button class="more-btn" onclick="toggleComments()">View Discussion & Memos</button>
-                <div id="comment-section"><div id="comment-list" class="chat-wrap"></div><div class="chat-input-bar"><input type="text" id="cmt-author" placeholder="Name"><input type="text" id="cmt-text" placeholder="Write a comment..."><button class="send-btn" onclick="addComment()"><i class="fas fa-arrow-up"></i></button></div></div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <div id="m-meta" style="color:var(--ios-accent); font-weight:800; font-size:0.75rem; letter-spacing:0.1em;">META_INFO</div>
+                    <button onclick="deleteRecord()" style="color:#ff453a; background:none; border:none; cursor:pointer; font-size:0.75rem; font-weight:700;">DELETE RECORD</button>
+                </div>
+                
+                <input type="text" id="edit-title" style="font-family:'Syne'; font-size:2.8rem; font-weight:900; border:none; background:none; color:inherit; width:100%; padding:0; margin-bottom:15px; letter-spacing:-0.03em;" readonly>
+                
+                <div id="edit-img-wrap" style="display:none; margin-bottom:15px;">
+                    <div class="ios-label" style="font-size:0.6rem;">Edit Image URL</div>
+                    <input type="text" id="edit-img-url" style="font-size:0.8rem; padding:10px; margin:0; background:var(--card-border); border-radius:10px;">
+                </div>
+
+                <textarea id="edit-review" style="font-size:1.05rem; border:none; background:none; color:inherit; resize:none; flex:1; padding:0; line-height:1.6; opacity:0.8;" readonly></textarea>
+                
+                <div style="margin-top:30px; display:flex; align-items:center; gap:15px; padding-bottom: 25px; border-bottom:0.5px solid var(--card-border);">
+                    <div style="background:var(--card-border); padding:12px 20px; border-radius:15px; display:flex; align-items:center;">
+                        <span style="color:var(--ios-accent); font-weight:900; margin-right:8px;">₩</span>
+                        <input type="text" id="edit-price-display" style="width:120px; font-weight:900; background:none; border:none; color:inherit; margin-bottom:0; padding:0;" readonly>
+                    </div>
+                    <button id="update-btn" onclick="toggleEditMode()" style="background:var(--text); color:var(--bg); border:none; padding:15px 25px; border-radius:18px; font-weight:800; cursor:pointer;">EDIT</button>
+                    <button onclick="exportToImage()" class="dl-btn" style="background:var(--ios-pink); color:white; border:none; padding:15px 25px; border-radius:18px; font-weight:800; cursor:pointer;">SAVE IMG</button>
+                </div>
+
+                <div id="comment-section" style="padding-top:25px;">
+                    <div style="font-family:'Syne'; font-size:0.8rem; font-weight:800; margin-bottom:15px; opacity:0.5;">COMMENTS</div>
+                    <div id="comment-list" style="max-height:250px; overflow-y:auto; margin-bottom:20px;"></div>
+                    <div style="display:flex; gap:10px; background:var(--card-border); padding:8px; border-radius:20px;">
+                        <input type="text" id="cmt-author" placeholder="User" style="width:80px; margin:0; padding:12px; border-radius:15px; background:var(--card-bg);">
+                        <input type="text" id="cmt-text" placeholder="Write a comment..." style="flex:1; margin:0; padding:12px; border-radius:15px; background:var(--card-bg);">
+                        <button onclick="addComment()" style="background:var(--ios-accent); border:none; color:white; width:45px; border-radius:15px; cursor:pointer;"><i class="fas fa-paper-plane"></i></button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+    <div id="capture-area">
+        <img id="cap-img" src="">
+        <div class="cap-title" id="cap-title">TITLE</div>
+        <div id="cap-meta" style="font-size:0.9rem; color:#888; margin-bottom:15px;">Director • 2026</div>
+        <div class="cap-review" id="cap-review">Review text...</div>
+        <div id="cap-price" style="font-size:1.2rem; font-weight:900; color:#007aff;">₩ 0</div>
+        <div style="margin-top:30px; font-size:0.7rem; color:#ccc; letter-spacing:0.2em;">ARCHIVE. PERSONAL LOG</div>
+    </div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        const firebaseConfig = { apiKey: "AIzaSyA_tiN-nm1ztfHWTSGcmf7pZawSNy8ahM0", authDomain: "watcha-1d01a.firebaseapp.com", projectId: "watcha-1d01a", storageBucket: "watcha-1d01a.firebasestorage.app", messagingSenderId: "293815354232", appId: "1:293815354232:web:3f0ceaba4d2f13c58a7e8d" };
+        // [1] Firebase 설정
+        const firebaseConfig = { 
+            apiKey: "AIzaSyA_tiN-nm1ztfHWTSGcmf7pZawSNy8ahM0", 
+            authDomain: "watcha-1d01a.firebaseapp.com", 
+            projectId: "watcha-1d01a", 
+            storageBucket: "watcha-1d01a.firebasestorage.app", 
+            messagingSenderId: "293815354232", 
+            appId: "1:293815354232:web:3f0ceaba4d2f13c58a7e8d" 
+        };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const archiveCol = collection(db, "archives");
 
-        window.currentCategory = 'movie'; window.records = []; window.events = JSON.parse(localStorage.getItem('events_v5')) || []; window.currentCalDate = new Date(); window.priceSort = 'none'; window.selectedId = null; window.replyToId = null; window.isEditing = false; window.lastClickedDate = null;
+        // [2] 전역 변수
+        window.currentCategory = 'movie'; 
+        window.records = []; 
+        window.events = JSON.parse(localStorage.getItem('events_v5')) || []; 
+        window.currentCalDate = new Date(); 
+        window.selectedId = null; 
+        window.replyToId = null; 
+        window.isEditing = false;
+        window.lastClickedDate = null; 
+        window.editingEventId = null;
+
         const formatComma = (num) => Number(num).toLocaleString('ko-KR');
+
+        // [3] 테마 관리 (자동 전환 + 수동 토글)
+        const applyAutoTheme = () => {
+            const hour = new Date().getHours();
+            const isLight = (hour >= 6 && hour < 18);
+            if (localStorage.getItem('theme') === 'light' || (!localStorage.getItem('theme') && isLight)) {
+                document.body.classList.add('light-mode');
+            }
+        };
+
+        window.toggleTheme = () => {
+            document.body.classList.toggle('light-mode');
+            const current = document.body.classList.contains('light-mode') ? 'light' : 'dark';
+            localStorage.setItem('theme', current);
+        };
+        applyAutoTheme();
+
+        // [4] 섹션 전환 및 검색
+        window.showSection = (id) => {
+            document.querySelectorAll('.scroller').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.querySelectorAll('nav li').forEach(l => l.classList.remove('active'));
+            const navItem = document.getElementById('nav-' + id);
+            if(navItem) navItem.classList.add('active');
+            document.getElementById('bgText').innerText = id.toUpperCase();
+            if(id === 'cal') renderCalendar();
+        };
+
+        window.toggleSearchBox = () => {
+            const w = document.getElementById('search-input-wrapper');
+            w.style.display = (w.style.display === 'block' ? 'none' : 'block');
+        };
+        window.handleSearch = (e) => { if(e.key === 'Enter') renderRecords(); };
+
+        // [5] 카테고리 설정
+        window.setCategory = (cat) => {
+            window.currentCategory = cat;
+            document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('btn-' + cat).classList.add('active');
+            const isWish = (cat === 'wish'), isBook = (cat === 'book');
+            document.getElementById('wish-cat-selector').style.display = isWish ? 'block' : 'none';
+            document.getElementById('year-field').style.display = (isWish || isBook) ? 'none' : 'block';
+            document.getElementById('date-field').style.display = isWish ? 'none' : 'block';
+            document.getElementById('price-input-group').style.display = (isWish || isBook) ? 'none' : 'block';
+            document.getElementById('label-author').innerText = isBook ? 'Author' : 'Director';
+        };
+
+        // [6] Firebase 저장 및 데이터 감시
+        window.saveRecord = async () => {
+            const title = document.getElementById('in-title').value;
+            if(!title) return alert("Title required.");
+            const isWish = (window.currentCategory === 'wish');
+            const finalCat = isWish ? document.getElementById('in-wish-type').value : window.currentCategory;
+            await addDoc(archiveCol, {
+                category: finalCat, isWish: isWish, title: title,
+                author: document.getElementById('in-author').value,
+                year: (isWish || window.currentCategory === 'book') ? "" : document.getElementById('in-year').value,
+                watchedDate: isWish ? "" : document.getElementById('in-date').value,
+                img: document.getElementById('in-img').value,
+                review: document.getElementById('in-review').value,
+                price: (isWish || window.currentCategory === 'book') ? 0 : (Number(document.getElementById('in-price').value) || 0),
+                comments: [], timestamp: Date.now()
+            });
+            document.querySelectorAll('#main input, #main textarea').forEach(i => i.value='');
+            alert("Success!");
+        };
 
         onSnapshot(query(archiveCol, orderBy("timestamp", "desc")), (snap) => {
             window.records = snap.docs.map(d => ({ id: d.id, ...d.data() }));
             renderRecords();
-            if(window.selectedId) { const updated = window.records.find(r => r.id === window.selectedId); if(updated) renderComments(updated); }
-            if(document.getElementById('cal').classList.contains('active')) renderCalendar();
+            if(window.selectedId) {
+                const rec = window.records.find(r => r.id === window.selectedId);
+                if(rec) renderComments(rec);
+            }
         });
 
         window.renderRecords = () => {
-            const dg = document.getElementById('dvd-grid'), bg = document.getElementById('book-grid');
-            if(!dg || !bg) return; dg.innerHTML = ''; bg.innerHTML = '';
+            const dg = document.getElementById('dvd-grid'), bg = document.getElementById('book-grid'), wg = document.getElementById('wish-grid');
+            if(!dg) return;
+            dg.innerHTML = bg.innerHTML = wg.innerHTML = '';
             const q = document.getElementById('search-query').value.toLowerCase();
-            let filtered = window.records.filter(r => r.title.toLowerCase().includes(q) || r.author.toLowerCase().includes(q));
-            if(window.priceSort !== 'none') filtered.sort((a,b) => window.priceSort === 'asc' ? (a.price-b.price) : (b.price-a.price));
-            filtered.forEach(r => {
-                const item = document.createElement('div'); item.className = 'archive-item'; item.onclick = () => openModal(r);
-                item.innerHTML = `<div class="img-wrap"><img src="${r.img}"></div><div style="text-align:center;font-weight:600;font-size:0.8rem;">${r.title}</div>`;
-                if(r.category === 'movie') dg.appendChild(item); else bg.appendChild(item);
+            window.records.filter(r => r.title.toLowerCase().includes(q)).forEach(r => {
+                const div = document.createElement('div'); div.className = 'archive-item';
+                div.onclick = () => openModal(r);
+                div.innerHTML = `<div class="img-wrap"><img src="${r.img}"></div><div style="text-align:center; font-size:0.8rem; font-weight:600; margin-top:10px;">${r.title}</div>`;
+                if(r.isWish) wg.appendChild(div); else if(r.category === 'movie') dg.appendChild(div); else bg.appendChild(div);
             });
-            document.getElementById('stat-movie').innerText = window.records.filter(r=>r.category==='movie').length;
-            document.getElementById('stat-book').innerText = window.records.filter(r=>r.category==='book').length;
+            document.getElementById('stat-movie').innerText = window.records.filter(r => r.category==='movie' && !r.isWish).length;
+            document.getElementById('stat-book').innerText = window.records.filter(r => r.category==='book' && !r.isWish).length;
         };
 
-        window.openModal = (r) => { 
-            window.selectedId = r.id; window.isEditing = false;
-            document.getElementById('m-img').src = r.img; document.getElementById('m-bg-glow').style.backgroundImage = `url(${r.img})`;
-            document.getElementById('edit-title').value = r.title; document.getElementById('edit-review').value = r.review;
-            document.getElementById('edit-price-display').value = formatComma(r.price || 0); document.getElementById('edit-price').value = r.price || 0;
-            document.getElementById('update-btn').innerText = "EDIT";
-            let metaText = r.category === 'movie' ? `${r.author} / ${r.year}` : r.author;
-            if(r.watchedDate) metaText += ` [${r.watchedDate}]`; document.getElementById('m-meta').innerText = metaText;
-            document.getElementById('m-price-container').style.visibility = r.category === 'movie' ? 'visible' : 'hidden';
-            document.getElementById('comment-section').style.display = 'none';
-            renderComments(r); const m = document.getElementById('modal'); m.style.display = 'flex'; setTimeout(() => m.classList.add('active'), 10);
-        };
-
-        window.renderComments = (r) => {
-            const list = document.getElementById('comment-list'); list.innerHTML = '';
-            const renderLoop = (parentId = null) => {
-                (r.comments || []).filter(c => (c.parentId || null) === parentId).forEach(c => {
-                    const item = document.createElement('div'); item.className = `comment-item ${parentId ? 'reply' : ''}`;
-                    item.innerHTML = `<div class="comment-header"><span class="comment-author">${c.author}</span></div><div class="comment-text">${c.text}</div><div class="comment-actions"><span onclick="setReply('${c.time}')">Reply</span><span onclick="editComment('${c.time}')">Edit</span><span onclick="deleteComment('${c.time}')">Delete</span></div>`;
-                    list.appendChild(item); renderLoop(c.time);
-                });
-            }; renderLoop(null);
-        };
-
-        window.setReply = (timeId) => { window.replyToId = timeId; const input = document.getElementById('cmt-text'); input.placeholder = "Replying..."; input.focus(); input.style.border = "1px solid var(--ios-accent)"; };
-        window.addComment = async () => {
-            const author = document.getElementById('cmt-author').value || "Guest", text = document.getElementById('cmt-text').value; if(!text) return;
-            const r = window.records.find(rec => rec.id === window.selectedId); const comments = [...(r.comments || []), { author, text, time: String(Date.now()), parentId: window.replyToId }];
-            await updateDoc(doc(db, "archives", window.selectedId), { comments });
-            document.getElementById('cmt-text').value = ''; document.getElementById('cmt-text').placeholder = "Write a comment..."; document.getElementById('cmt-text').style.border = "none"; window.replyToId = null;
-        };
-
-        window.deleteComment = async (timeId) => { if(confirm("삭제하시겠습니까?")) { const r = window.records.find(rec => rec.id === window.selectedId); await updateDoc(doc(db, "archives", window.selectedId), { comments: r.comments.filter(c => c.time !== timeId && c.parentId !== timeId) }); } };
-        window.editComment = async (timeId) => { const r = window.records.find(rec => rec.id === window.selectedId); const c = r.comments.find(com => com.time === timeId); const newText = prompt("수정:", c.text); if(newText) await updateDoc(doc(db, "archives", window.selectedId), { comments: r.comments.map(com => com.time === timeId ? {...com, text: newText} : com) }); };
-
-        window.showSection = (id) => { document.querySelectorAll('.scroller').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); document.querySelectorAll('nav li').forEach(l => l.classList.remove('active')); document.getElementById('nav-' + id).classList.add('active'); document.getElementById('bgText').innerText = id.toUpperCase(); if(id === 'cal') renderCalendar(); };
-        window.setCategory = (cat) => { window.currentCategory = cat; document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active')); document.getElementById('btn-' + cat).classList.add('active'); document.getElementById('label-author').innerText = cat === 'movie' ? 'Director' : 'Author'; document.getElementById('year-field').style.display = cat === 'book' ? 'none' : 'block'; document.getElementById('date-field').style.display = cat === 'book' ? 'none' : 'block'; document.getElementById('price-input-group').style.display = cat === 'book' ? 'none' : 'block'; };
-        window.toggleComments = () => { const div = document.getElementById('comment-section'); div.style.display = div.style.display === 'block' ? 'none' : 'block'; };
-        window.deleteRecord = async () => { if(confirm("Delete?")) { await deleteDoc(doc(db, "archives", window.selectedId)); closeModal(); } };
-        window.toggleSearchBox = () => { const w = document.getElementById('search-input-wrapper'); w.style.display = w.style.display === 'block' ? 'none' : 'block'; if(w.style.display === 'block') document.getElementById('search-query').focus(); };
-        window.handleSearch = (e) => { if(e.key === 'Enter') renderRecords(); };
-        window.toggleSort = () => { window.priceSort = window.priceSort === 'none' ? 'asc' : (window.priceSort === 'asc' ? 'desc' : 'none'); document.getElementById('sort-label').innerText = window.priceSort.toUpperCase(); renderRecords(); };
-        window.saveRecord = async () => { const title = document.getElementById('in-title').value; if(!title) return; await addDoc(archiveCol, { category: window.currentCategory, title, author: document.getElementById('in-author').value, year: document.getElementById('in-year').value, watchedDate: document.getElementById('in-date').value, img: document.getElementById('in-img').value, review: document.getElementById('in-review').value, price: Number(document.getElementById('in-price').value) || 0, comments: [], timestamp: Date.now() }); document.querySelectorAll('#main input, #main textarea').forEach(i => i.value=''); };
-
-        window.toggleEditMode = async () => {
-            const t = document.getElementById('edit-title'), r = document.getElementById('edit-review'), d = document.getElementById('edit-price-display'), p = document.getElementById('edit-price'), b = document.getElementById('update-btn');
-            if (!window.isEditing) { window.isEditing = true; t.readOnly = r.readOnly = d.readOnly = false; d.value = p.value; b.innerText = "SAVE CHANGES"; }
-            else { const np = Number(d.value) || 0; await updateDoc(doc(db, "archives", window.selectedId), { title: t.value, review: r.value, price: np }); window.isEditing = false; t.readOnly = r.readOnly = d.readOnly = true; d.value = formatComma(np); p.value = np; b.innerText = "EDIT"; }
-        };
-
-        window.closeModal = () => { const m = document.getElementById('modal'); m.classList.remove('active'); setTimeout(() => { m.style.display = 'none'; if(window.lastClickedDate && document.getElementById('cal').classList.contains('active')) { const f = document.getElementById('event-form'); f.style.display = 'block'; document.getElementById('ev-start').value = document.getElementById('ev-end').value = window.lastClickedDate; location.href = "#event-form"; document.getElementById('ev-text').focus(); window.lastClickedDate = null; } window.selectedId = window.replyToId = null; }, 500); };
-        window.changeMonth = (v) => { window.currentCalDate.setMonth(window.currentCalDate.getMonth()+v); renderCalendar(); };
+        // [7] 캘린더
+        window.changeMonth = (v) => { window.currentCalDate.setMonth(window.currentCalDate.getMonth() + v); renderCalendar(); };
         window.renderCalendar = () => {
-            const cal = document.getElementById('calendar'); cal.innerHTML = '';
+            const cal = document.getElementById('calendar'); if(!cal) return; cal.innerHTML = '';
             const y = window.currentCalDate.getFullYear(), m = window.currentCalDate.getMonth();
             document.getElementById('cal-month-title').innerText = `${new Intl.DateTimeFormat('en-US',{month:'long'}).format(window.currentCalDate).toUpperCase()}`;
-            const first = new Date(y, m, 1).getDay(), days = new Date(y, m+1, 0).getDate();
+            const first = new Date(y, m, 1).getDay(), last = new Date(y, m+1, 0).getDate();
             for(let i=0; i<first; i++) cal.appendChild(document.createElement('div')).className='cal-day';
-            for(let d=1; d<=days; d++) {
-                const day = document.createElement('div'); day.className = 'cal-day'; const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+            for(let d=1; d<=last; d++) {
+                const day = document.createElement('div'); day.className='cal-day';
+                const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
                 day.innerHTML = `<span>${d}</span>`;
-                const ar = window.records.find(r => r.watchedDate === ds);
-                if(ar && ar.img) { day.style.backgroundImage = `url(${ar.img})`; const ov = document.createElement('div'); ov.className = 'cal-day-overlay'; day.appendChild(ov); }
-                const de = window.events.filter(e => ds >= e.start && ds <= e.end);
-                if(de.length > 0) { const pin = document.createElement('div'); pin.className = 'cal-pin'; pin.innerHTML = '<i class="fas fa-thumbtack"></i>'; pin.onclick = (ex) => { ex.stopPropagation(); document.getElementById('event-form').style.display='block'; document.getElementById('ev-text').value = de[0].text; document.getElementById('ev-memo').value = de[0].memo || ''; document.getElementById('ev-start').value = de[0].start; document.getElementById('ev-end').value = de[0].end; location.href = "#event-form"; }; day.appendChild(pin); }
-                day.onclick = () => { if(ar) { window.lastClickedDate = ds; openModal(ar); } else { document.getElementById('event-form').style.display='block'; document.getElementById('ev-text').value = document.getElementById('ev-memo').value = ''; document.getElementById('ev-start').value = document.getElementById('ev-end').value = ds; location.href = "#event-form"; } };
-                de.forEach(e => { const ev = document.createElement('div'); ev.className = 'cal-event'; ev.innerText = e.text; ev.onclick = (ex) => { ex.stopPropagation(); if(confirm(`Delete?`)) { window.events = window.events.filter(v => v.id !== e.id); localStorage.setItem('events_v5', JSON.stringify(window.events)); renderCalendar(); } }; day.appendChild(ev); });
+                const ar = window.records.find(r => r.watchedDate === ds && !r.isWish);
+                if(ar) day.style.backgroundImage = `url(${ar.img})`;
+                if(window.events.some(e => ds >= e.start && ds <= e.end)) {
+                    const pin = document.createElement('div'); pin.className = 'event-pin';
+                    day.appendChild(pin);
+                }
+                day.onclick = () => { window.lastClickedDate = ds; if(ar) openModal(ar); else loadEventToForm(ds); };
                 cal.appendChild(day);
             }
+            renderEventList();
         };
 
-        window.saveEvent = () => { const t = document.getElementById('ev-text').value; if(!t) return; window.events.push({id:Date.now(), text:t, memo:document.getElementById('ev-memo').value, start:document.getElementById('ev-start').value, end:document.getElementById('ev-end').value}); localStorage.setItem('events_v5', JSON.stringify(window.events)); renderCalendar(); document.getElementById('event-form').style.display='none'; };
-        window.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+        window.loadEventToForm = (dateStr) => {
+            const event = window.events.find(e => dateStr >= e.start && dateStr <= e.end);
+            const btn = document.querySelector('#event-form .save-btn');
+            if(event) {
+                document.getElementById('ev-text').value = event.text; document.getElementById('ev-memo').value = event.memo;
+                document.getElementById('ev-start').value = event.start; document.getElementById('ev-end').value = event.end;
+                window.editingEventId = event.id; btn.innerText = "UPDATE SCHEDULE"; btn.style.background = "#ff9500";
+            } else { resetEventForm(); document.getElementById('ev-start').value = dateStr; document.getElementById('ev-end').value = dateStr; }
+            document.getElementById('event-form').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        };
+
+        window.resetEventForm = () => {
+            document.querySelectorAll('#event-form input, #event-form textarea').forEach(i => i.value='');
+            window.editingEventId = null;
+            const btn = document.querySelector('#event-form .save-btn');
+            if(btn) { btn.innerText = "SAVE SCHEDULE"; btn.style.background = "var(--ios-accent)"; }
+        };
+
+        window.saveEvent = () => {
+            const text = document.getElementById('ev-text').value, start = document.getElementById('ev-start').value, end = document.getElementById('ev-end').value;
+            if(!text || !start) return alert("Title and Date required.");
+            if(window.editingEventId) window.events = window.events.map(e => e.id === window.editingEventId ? {...e, text, memo:document.getElementById('ev-memo').value, start, end} : e);
+            else window.events.push({ id: Date.now(), text, memo: document.getElementById('ev-memo').value, start, end });
+            localStorage.setItem('events_v5', JSON.stringify(window.events));
+            resetEventForm(); renderCalendar();
+        };
+
+        window.deleteEvent = (id) => { if(confirm("Delete?")) { window.events = window.events.filter(e => e.id !== id); localStorage.setItem('events_v5', JSON.stringify(window.events)); renderCalendar(); } };
+        window.renderEventList = () => { document.getElementById('event-list').innerHTML = window.events.map(e => `<div style="background:var(--card-bg); padding:15px; border-radius:15px; margin-bottom:10px; border:0.5px solid var(--card-border); display:flex; justify-content:space-between; align-items:center;"><div onclick="loadEventToForm('${e.start}')" style="cursor:pointer; flex:1;"><b>${e.text}</b><br><small>${e.start} ~ ${e.end}</small></div><button onclick="deleteEvent(${e.id})" style="background:none; border:none; color:#ff453a; cursor:pointer;"><i class="fas fa-trash"></i></button></div>`).join(''); };
+
+        // [8] 모달
+        window.openModal = (r) => {
+            window.selectedId = r.id; window.isEditing = false;
+            document.getElementById('m-img').src = r.img;
+            document.getElementById('edit-title').value = r.title;
+            document.getElementById('edit-review').value = r.review;
+            document.getElementById('edit-price-display').value = formatComma(r.price || 0);
+            document.getElementById('edit-img-url').value = r.img; // 초기 URL 세팅
+            document.getElementById('edit-img-wrap').style.display = 'none'; // 평소엔 숨김
+            renderComments(r);
+            const m = document.getElementById('modal'); m.style.display = 'flex'; setTimeout(() => m.classList.add('active'), 10);
+        };
+
+        window.closeModal = () => {
+            const m = document.getElementById('modal'); m.classList.remove('active');
+            setTimeout(() => { m.style.display='none'; if(window.lastClickedDate) loadEventToForm(window.lastClickedDate); window.replyToId = null; }, 500);
+        };
+
+        // [9] 댓글 및 대댓글
+        window.renderComments = (r) => {
+            const list = document.getElementById('comment-list'); if(!list) return;
+            list.innerHTML = '';
+            const loop = (pId = null, depth = 0) => {
+                (r.comments || []).filter(c => c.parentId === pId).forEach(c => {
+                    const div = document.createElement('div');
+                    div.className = 'cmt-item'; div.style.marginLeft = `${depth*20}px`;
+                    div.innerHTML = `<b>${c.author}</b>: ${c.text}
+                        <div style="font-size:0.65rem; opacity:0.4; margin-top:5px; display:flex; gap:10px;">
+                            <span onclick="setReply('${c.time}')" style="cursor:pointer;">Reply</span>
+                            <span onclick="editCmt('${c.time}')" style="cursor:pointer;">Edit</span>
+                            <span onclick="delCmt('${c.time}')" style="cursor:pointer;">Del</span>
+                        </div>`;
+                    list.appendChild(div);
+                    loop(c.time, depth + 1);
+                });
+            }; loop();
+        };
+
+        window.setReply = (id) => { window.replyToId = id; document.getElementById('cmt-text').placeholder="Replying..."; document.getElementById('cmt-text').focus(); };
+        window.addComment = async () => {
+            const a = document.getElementById('cmt-author').value || "Guest", t = document.getElementById('cmt-text').value;
+            if(!t) return;
+            const r = window.records.find(rec => rec.id === window.selectedId);
+            const updated = [...(r.comments || []), { author: a, text: t, time: String(Date.now()), parentId: window.replyToId }];
+            await updateDoc(doc(db, "archives", window.selectedId), { comments: updated });
+            document.getElementById('cmt-text').value = ''; document.getElementById('cmt-text').placeholder="Comment"; window.replyToId = null;
+        };
+
+        window.editCmt = async (tId) => {
+            const r = window.records.find(rec => rec.id === window.selectedId);
+            const target = r.comments.find(c => c.time === tId);
+            const next = prompt("Edit comment:", target.text); if(!next) return;
+            const updated = r.comments.map(c => c.time === tId ? {...c, text: next} : c);
+            await updateDoc(doc(db, "archives", window.selectedId), { comments: updated });
+        };
+
+        window.delCmt = async (tId) => {
+            if(!confirm("Delete?")) return;
+            const r = window.records.find(rec => rec.id === window.selectedId);
+            const updated = r.comments.filter(c => c.time !== tId && c.parentId !== tId);
+            await updateDoc(doc(db, "archives", window.selectedId), { comments: updated });
+        };
+
+        // [10] 이미지 캡처
+        window.exportToImage = () => {
+            const r = window.records.find(rec => rec.id === window.selectedId);
+            document.getElementById('cap-img').src = r.img;
+            document.getElementById('cap-title').innerText = r.title;
+            document.getElementById('cap-meta').innerText = `${r.author} • ${r.year || '2026'}`;
+            document.getElementById('cap-review').innerText = r.review;
+            document.getElementById('cap-price').style.display = "none";
+
+            const area = document.getElementById('capture-area');
+            setTimeout(() => {
+                html2canvas(area, { useCORS: true, logging: false }).then(canvas => {
+                    const link = document.createElement('a');
+                    link.download = `${r.title}_archive.png`;
+                    link.href = canvas.toDataURL("image/png");
+                    link.click();
+                });
+            }, 500);
+        };
+
+        // [11] 수정 및 삭제 (이미지 수정 로직 포함)
+        window.deleteRecord = async () => { if(confirm("Delete record?")) { await deleteDoc(doc(db, "archives", window.selectedId)); closeModal(); } };
+        
+        window.toggleEditMode = async () => {
+            const t = document.getElementById('edit-title'), 
+                  r = document.getElementById('edit-review'), 
+                  d = document.getElementById('edit-price-display'), 
+                  iu = document.getElementById('edit-img-url'),
+                  iw = document.getElementById('edit-img-wrap'),
+                  b = document.getElementById('update-btn');
+
+            if(!window.isEditing) { 
+                window.isEditing = true; 
+                t.readOnly = r.readOnly = d.readOnly = false; 
+                iw.style.display = 'block'; // 이미지 수정창 열기
+                b.innerText = "SAVE"; 
+                t.focus(); 
+            } else { 
+                const newImg = iu.value;
+                await updateDoc(doc(db, "archives", window.selectedId), { 
+                    title: t.value, 
+                    review: r.value, 
+                    img: newImg, // 이미지 URL 업데이트
+                    price: Number(d.value.replace(/,/g,'')) 
+                });
+                window.isEditing = false; 
+                t.readOnly = r.readOnly = d.readOnly = true; 
+                iw.style.display = 'none'; // 이미지 수정창 닫기
+                document.getElementById('m-img').src = newImg; // 모달 내 이미지 즉시 변경
+                b.innerText = "EDIT"; 
+            }
+        };
+window.searchCine21 = () => {
+    const titleInput = document.getElementById('in-title'); // id를 in-title로 맞췄습니다
+    const title = titleInput.value.trim();
+
+    if (!title) {
+        alert("먼저 영화 제목을 입력해주세요! ✨");
+        titleInput.focus();
+        return;
+    }
+
+    const searchUrl = `http://www.cine21.com/search/?q=${encodeURIComponent(title)}`;
+    window.open(searchUrl, '_blank');
+};
+
+
+        window.exportToExcel = () => { 
+            const ws = XLSX.utils.json_to_sheet(window.records); const wb = XLSX.utils.book_new(); 
+            XLSX.utils.book_append_sheet(wb, ws, "Archives"); XLSX.writeFile(wb, "MyArchive.xlsx"); 
+        };
+
+        window.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeModal(); });
+        showSection('main');
+// 데이터 내보내기 (JSON 파일 다운로드)
+window.exportData = () => {
+    // 1. 현재 코드에서 데이터를 담고 있을 가능성이 있는 변수들을 모두 체크합니다.
+    const dataToExport = window.allRecords || window.records || (typeof records !== 'undefined' ? records : null);
+
+    if (!dataToExport || dataToExport.length === 0) {
+        alert("내보낼 데이터가 없습니다. 먼저 기록을 추가해주세요! 📭");
+        return;
+    }
+
+    try {
+        const dataStr = JSON.stringify(dataToExport, null, 2);
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+
+        const fileName = `archive_backup_${new Date().toISOString().slice(2,10).replace(/-/g, '')}.json`;
+        
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        
+        console.log("Export Success");
+    } catch (e) {
+        alert("내보내기 중 오류가 발생했습니다: " + e.message);
+    }
+};
+
+
     </script>
 </body>
 </html>
