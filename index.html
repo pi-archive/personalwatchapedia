@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -84,10 +85,71 @@
         
         .cmt-item { margin-bottom: 12px; padding: 12px 18px; background: var(--card-border); border-radius: 20px; font-size: 0.9rem; line-height: 1.4; position: relative; }
         
-        #capture-area { 
-            position: fixed; left: -9999px; top: 0; width: 400px; background: #fff; padding: 40px; color: #000; 
-            display: flex; flex-direction: column; align-items: center; text-align: center; border-radius: 0;
-        }
+/* 티켓 전체 컨테이너 */
+#ticket-capture {
+    position: fixed;
+    left: -9999px;
+    width: 400px;
+    height: 700px; /* 세로로 긴 우아한 비율 */
+    background: #ffffff; /* 깔끔한 화이트 배경 (다크모드와 대비) */
+    color: #000000;
+    padding: 0; /* 패딩 제거 후 내부에서 조절 */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    font-family: 'Syne', sans-serif;
+    z-index: -100;
+}
+
+/* 포스터 이미지 영역 */
+#t-img-container {
+    width: 100%;
+    height: 70%; /* 포스터가 전체의 70% 차지 */
+    overflow: hidden;
+}
+
+#t-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* 가로로 길어지지 않게 비율 유지하며 채움 */
+    display: block;
+}
+
+/* 하단 정보 영역 */
+#t-info-area {
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    flex-grow: 1;
+    background: #ffffff;
+    position: relative;
+}
+
+/* 티켓 구분선 (점선 효과) */
+#t-info-area::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 20px;
+    right: 20px;
+    border-top: 1.5px dashed #ccc;
+}
+
+/* 모달 내 EDIT 버튼과 SAVE IMG 버튼 규격을 똑같이 만듭니다 */
+#update-btn, #save-img-btn {
+    flex: 1;           /* 가로 길이를 동일하게 배분 */
+    height: 50px;      /* 높이 통일 */
+    border: none;
+    border-radius: 15px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+#update-btn { background: var(--text); color: var(--bg); }
+#save-img-btn { background: var(--ios-accent); color: #fff; }
+
 /* 상단바 모바일 좌우 스와이프 최적화 */
 nav {
     display: flex;
@@ -113,6 +175,34 @@ nav ul {
     display: flex;
     gap: 30px;
     flex-shrink: 0;
+}
+/* --- [이식된 기능 1] index2 스타일: 모달 배경색 추출 효과 --- */
+#detail-modal {
+    display: none; 
+    position: fixed;
+    top: 0; left: 0; 
+    width: 100%; height: 100%;
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.85); /* 로딩 전 기본색 */
+    transition: background-color 0.8s cubic-bezier(0.25, 1, 0.5, 1); /* 색 변화 부드럽게 */
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+}
+
+/* 모달이 활성화되었을 때 */
+#detail-modal.active {
+    display: flex !important;
+}
+
+/* 색상 추출 효과가 잘 보이도록 모달 내부 박스를 투명하게 */
+#detail-modal .modal-content {
+    background: rgba(0, 0, 0, 0.3) !important; /* 배경색이 잘 비치도록 설정 */
+    backdrop-filter: blur(25px) saturate(180%);
+    -webkit-backdrop-filter: blur(25px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 30px 60px rgba(0,0,0,0.5);
 }
     </style>
 </head>
@@ -280,7 +370,7 @@ nav ul {
                         <input type="text" id="edit-price-display" style="width:120px; font-weight:900; background:none; border:none; color:inherit; margin-bottom:0; padding:0;" readonly>
                     </div>
                     <button id="update-btn" onclick="toggleEditMode()" style="background:var(--text); color:var(--bg); border:none; padding:15px 25px; border-radius:18px; font-weight:800; cursor:pointer;">EDIT</button>
-                    <button onclick="exportToImage()" class="dl-btn" style="background:var(--ios-pink); color:white; border:none; padding:15px 25px; border-radius:18px; font-weight:800; cursor:pointer;">SAVE IMG</button>
+<button id="save-img-btn" onclick="exportToImage()" class="dl-btn">SAVE IMG</button>
                 </div>
 
                 <div id="comment-section" style="padding-top:25px;">
@@ -296,14 +386,29 @@ nav ul {
         </div>
     </div>
 
-    <div id="capture-area">
-        <img id="cap-img" src="">
-        <div class="cap-title" id="cap-title">TITLE</div>
-        <div id="cap-meta" style="font-size:0.9rem; color:#888; margin-bottom:15px;">Director • 2026</div>
-        <div class="cap-review" id="cap-review">Review text...</div>
-        <div id="cap-price" style="font-size:1.2rem; font-weight:900; color:#007aff;">₩ 0</div>
-        <div style="margin-top:30px; font-size:0.7rem; color:#ccc; letter-spacing:0.2em;">ARCHIVE. PERSONAL LOG</div>
+<div id="ticket-capture">
+    <div id="t-img-container">
+        <img id="t-img" src="" alt="poster">
     </div>
+
+    <div id="t-info-area">
+        <div style="text-align: center; margin-bottom: 10px;">
+            <span style="font-size: 10px; letter-spacing: 0.5em; color: #888; font-weight: 700;"></span>
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+            <div id="t-title" style="font-size: 26px; font-weight: 900; line-height: 1.2; text-transform: uppercase; margin-bottom: 5px;">TITLE</div>
+            <div id="t-author" style="font-size: 13px; font-weight: 400; color: #555; letter-spacing: 0.02em;">Director • Year</div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+            <div id="t-date" style="font-size: 12px; font-weight: 700; color: #000; letter-spacing: 0.1em;">2026.01.01</div>
+            <div style="font-family: 'La Belle Aurore', cursive; font-size: 18px; color: #ff007a;"></div>
+        </div>
+    </div>
+</div>
+    <div id="t-date" style="font-size:0.8rem; letter-spacing:0.15em; border-top:1px dashed #444; padding-top:20px; text-align:center; color: #8e8e93;">2026.01.01</div>
+</div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -571,25 +676,65 @@ nav ul {
         };
 
         // [10] 이미지 캡처
-        window.exportToImage = () => {
-            const r = window.records.find(rec => rec.id === window.selectedId);
-            document.getElementById('cap-img').src = r.img;
-            document.getElementById('cap-title').innerText = r.title;
-            document.getElementById('cap-meta').innerText = `${r.author} • ${r.year || '2026'}`;
-            document.getElementById('cap-review').innerText = r.review;
-            document.getElementById('cap-price').style.display = "none";
+// 위치: <script type="module"> 내부의 [10] 이미지 캡처 섹션을 아래로 교체
+window.exportToImage = async function() {
+    const r = window.records.find(rec => rec.id === window.selectedId);
+    if (!r) return alert("데이터를 찾을 수 없습니다.");
 
-            const area = document.getElementById('capture-area');
-            setTimeout(() => {
-                html2canvas(area, { useCORS: true, logging: false }).then(canvas => {
-                    const link = document.createElement('a');
-                    link.download = `${r.title}_archive.png`;
-                    link.href = canvas.toDataURL("image/png");
-                    link.click();
-                });
-            }, 500);
-        };
+    const btn = document.querySelector('.dl-btn');
+    const originalText = btn.innerText;
+    btn.innerText = "CAPTURING...";
+    btn.disabled = true;
 
+    const tContainer = document.getElementById('ticket-capture');
+    const tImg = document.getElementById('t-img');
+
+    try {
+        // [CORS 우회 핵심] weserv 프록시를 사용하여 이미지를 안전하게 불러옵니다.
+        const rawUrl = r.img || '';
+        if (rawUrl.startsWith('http')) {
+            tImg.src = `https://images.weserv.nl/?url=${encodeURIComponent(rawUrl)}&output=webp`;
+        } else {
+            tImg.src = rawUrl;
+        }
+
+        document.getElementById('t-title').innerText = r.title;
+        document.getElementById('t-author').innerText = (r.category === 'movie') ? `${r.author} • ${r.year}` : r.author;
+        document.getElementById('t-date').innerText = r.watchedDate || "2026.01.01";
+
+        // 이미지가 프록시를 통해 로드될 때까지 충분히 대기 (최대 3초)
+        await new Promise((resolve) => {
+            if (tImg.complete) resolve();
+            else {
+                tImg.onload = resolve;
+                tImg.onerror = resolve;
+                setTimeout(resolve, 3000);
+            }
+        });
+
+        tContainer.style.left = "0";
+
+        const canvas = await html2canvas(tContainer, {
+            useCORS: true,         // 외부 이미지 캡처 허용
+            allowTaint: false,      // 보안 오염 방지
+            backgroundColor: "#000000",
+            scale: 2
+        });
+
+        const link = document.createElement('a');
+        link.download = `Archive_${r.title}.png`;
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+
+    } catch (err) {
+        console.error("Capture Error:", err);
+        alert("이미지 생성 실패. URL 보안 문제일 수 있습니다.");
+    } finally {
+        tContainer.style.left = "-9999px";
+        btn.innerText = originalText;
+        btn.disabled = false;
+    }
+};
         // [11] 수정 및 삭제 (이미지 수정 로직 포함)
         window.deleteRecord = async () => { if(confirm("Delete record?")) { await deleteDoc(doc(db, "archives", window.selectedId)); closeModal(); } };
         
@@ -643,6 +788,7 @@ window.searchCine21 = () => {
         };
 
         window.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeModal(); });
+
         showSection('main');
 // 데이터 내보내기 (JSON 파일 다운로드)
 window.exportData = () => {
